@@ -1,0 +1,1446 @@
+<!-- /flydreamair/index.html -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FlyDreamAir • Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --bg:#f6f9fc; --page:#ffffff; --fg:#0f172a; --muted:#6b7280;
+  --primary:#1b74e4; --accent:#0ea5e9; --border:#e6eaf0; --ink:#fff;
+  --r-xl:48px; --r-lg:28px; --shadow:0 22px 60px rgba(15,23,42,.12);
+  --container:100%;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+.container{max-width:var(--container);margin-inline:auto;padding-inline:32px}
+.row{display:flex;gap:18px}
+.between{justify-content:space-between;align-items:center}
+.stack>*+*{margin-top:16px}
+.card{background:var(--page);border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border:1px solid var(--border);border-radius:14px;background:#fff;cursor:pointer;transition:transform .15s ease, box-shadow .15s ease}
+.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+input,select,textarea{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:14px;background:#fff;transition:box-shadow .15s ease,border-color .15s ease}
+label{font-size:12px;color:#7a8390;display:block;margin-bottom:6px}
+h1{font-size:44px;margin:0}
+h2{font-size:30px;margin:0}
+h3{font-size:20px;margin:0}
+footer{border-top:1px solid var(--border);padding-block:22px;background:#fff}
+.pill{padding:10px 14px;border:1px solid var(--border);border-radius:999px;background:#fff}
+
+/* ================== AUTH LAYOUT (joined panels) ================== */
+.auth-shell{
+  min-height:100svh;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  align-items:stretch;
+  gap:0;
+  padding:28px 24px 44px;
+  background:
+    radial-gradient(1100px 700px at 70% -8%, rgba(14,165,233,.16), transparent 55%),
+    linear-gradient(180deg,#eef7ff 0%,#f7fbff 45%, #f6f9fc 100%);
+  position:relative; isolation:isolate;
+}
+.auth-shell::before{
+  content:""; position:absolute; inset:76px 18px 28px; z-index:0;
+  background:#fff; border-radius:34px; border:1px solid rgba(14,21,48,.06);
+  box-shadow:0 36px 120px rgba(2,6,23,.16), 0 8px 26px rgba(2,6,23,.06);
+}
+.auth-shell::after{
+  content:""; position:absolute; inset:0; z-index:-1;
+  background-image: radial-gradient(rgba(2,6,23,.06) 1px, transparent 1.5px);
+  background-size:18px 18px; opacity:.45; animation:auth-dots-pan 26s linear infinite;
+}
+@keyframes auth-dots-pan{to{transform:translate3d(-18px,-18px,0)}}
+
+.auth-left,.auth-right{position:relative; z-index:1; display:flex; flex-direction:column}
+.auth-left{padding:22px 12px 22px 22px}
+.auth-right{padding:22px 22px 22px 12px}
+
+/* keep brand + card aligned */
+.brandRow{height:64px;display:flex;align-items:center;gap:12px;margin:0 8px 10px}
+.brandRow strong{font-size:46px;color:#1b74e4;letter-spacing:.2px;line-height:1}
+.brandRow img{border-radius:12px}
+.auth-card{margin-top:64px}
+
+/* Left panel hero */
+.heroPlaneWrap{
+  flex:1; position:relative; margin:0 8px;
+  height:84svh; min-height:560px;
+  border-radius:36px; overflow:hidden;
+  background:linear-gradient(180deg,#cfeeff,#a3dcff);
+  box-shadow:0 24px 80px rgba(2,6,23,.18),0 10px 24px rgba(2,6,23,.08);
+}
+.auth-shell .hero_img{
+  display:block !important;
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover; object-position:center;
+  transform:none;
+  will-change:transform;
+}
+.heroPlaneWrap::after{
+  content:""; position:absolute; inset:-10% -8% -6% -12%; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(200px 150px at 16% 22%, rgba(255,255,255,.95), transparent 70%),
+    radial-gradient(220px 170px at 46% 10%, rgba(255,255,255,.92), transparent 72%),
+    radial-gradient(210px 160px at 78% 24%, rgba(255,255,255,.90), transparent 70%),
+    radial-gradient(180px 130px at 84% 44%, rgba(255,255,255,.92), transparent 68%);
+  mix-blend-mode:lighten;opacity:.55;animation:cloud-slow 55s linear infinite;
+}
+@keyframes cloud-slow{50%{transform:translate3d(-2.5%,-1.2%,0) scale(1.02)}}
+.auth-shell .hero_img{}
+
+/* Right card */
+.auth-card{
+  flex:1; border-radius:0 28px 28px 0; border:1px solid rgba(14,21,48,.06);
+  background:linear-gradient(180deg, rgba(255,255,255,.90), rgba(255,255,255,.86));
+  backdrop-filter:saturate(160%) blur(10px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45);
+  padding:28px; display:flex; flex-direction:column;
+}
+.authCardHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;row-gap:6px}
+.toggleLink{color:#6b7280;font-size:14px}
+.toggleLink a{color:#1775e6;font-weight:600}
+.auth-title{font-size:32px;font-weight:800;margin:0 0 12px}
+.socialRow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.socialBtn{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 14px;border:1px solid #e9eef7;border-radius:12px;background:#fff;cursor:pointer}
+.socialBtn:hover{box-shadow:0 8px 22px rgba(2,6,23,.10);transform:translateY(-1px);transition:.12s}
+.orRule{display:flex;align-items:center;gap:12px;color:#8a93a1;justify-content:center;margin:12px 0}
+.orRule::before,.orRule::after{content:'';height:1px;background:var(--border);flex:1}
+.auth-card input{background:#eef4ff;border-color:#dbe8ff}
+.auth-card input:focus{outline:none;border-color:#c6dcff;box-shadow:0 0 0 3px rgba(14,165,233,.18)}
+.auth-card .stack > .row:last-child{justify-content:center!important}
+.auth-card .btn.primary{min-width:160px;height:44px;justify-content:center;border-radius:12px;color:#fff;background:linear-gradient(180deg,#1b74e4,#1764c8);border-color:#1764c8;box-shadow:0 10px 24px rgba(23,100,200,.24)}
+.auth-card .btn.primary:hover{transform:translateY(-1px);box-shadow:0 14px 28px rgba(23,100,200,.28)}
+
+/* Mobile */
+@media (max-width:1100px){
+  .auth-shell{grid-template-columns:1fr;padding:18px 16px 24px}
+  .auth-shell::before{inset:76px 8px 18px}
+  .heroPlaneWrap{height:54vh;min-height:420px;border-radius:28px}
+  .auth-card{border-radius:28px;margin-top:12px}
+}
+
+/* ======== App chrome ======== */
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.92);backdrop-filter:saturate(160%) blur(10px);border-bottom:1px solid var(--border)}
+nav{height:84px}
+.brand{display:flex;gap:12px;align-items:center}
+.brand strong{font-size:28px;color:#1b74e4}
+.nav{display:flex;gap:42px;align-items:center}
+.nav a{padding:14px 8px;border-radius:10px}
+.nav a[aria-current="page"]{box-shadow:inset 0 -2px 0 0 #1b1d24}
+.search-pill{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:999px;padding:12px 16px;background:#fff;min-width:320px}
+.avatar{border-radius:999px;border:1px solid var(--border)}
+.page{margin:20px;border-radius:48px;overflow:hidden;background:var(--page)}
+.hero{padding:30px}
+.banner{position:relative;border-radius:36px;overflow:hidden}
+.banner>img{width:100%;height:520px;object-fit:cover}
+
+/* Contact page overlay  */
+main.container:has(form[onsubmit="sendMsg(event)"]) .banner::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg, rgba(3,7,18,.65) 0%, rgba(3,7,18,.35) 28%, rgba(3,7,18,0) 55%);
+}
+main.container:has(form[onsubmit="sendMsg(event)"]) .banner > div{
+  color:#fff !important; text-shadow:0 8px 26px rgba(2,6,23,.55), 0 2px 8px rgba(2,6,23,.35) !important
+}
+main.container:has(form[onsubmit="sendMsg(event)"]) .banner > div p{color:transparent !important; position:relative}
+main.container:has(form[onsubmit="sendMsg(event)"]) .banner > div p::after{
+  content:"Got a question? We would love to hear from you. Send us a message and we will respond as soon as possible.";
+  color:#fff; position:absolute; inset:0 auto auto 0;
+}
+
+/* =========== HOME: rail + content =========== */
+.rail-wrap{display:grid;grid-template-columns:112px 1fr;gap:22px;align-items:start}
+.rail{
+  position:sticky;top:96px;align-self:start;width:100%;
+  background:#f2f5f9;border:1px solid var(--border);border-radius:24px;
+  padding:14px 10px;display:flex;flex-direction:column;gap:18px;text-align:center
+}
+.rail .item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border-radius:16px;color:#111827;cursor:pointer}
+.rail .item.active{background:#fff;box-shadow:0 6px 18px rgba(2,6,23,.08)}
+.rail .item img.avatar{width:44px;height:44px}
+
+/* ----- FIX #1: Home “Plan Your Trip” readable pill ----- */
+.plan-pill{
+  position:absolute;left:28px;right:28px;bottom:28px;
+  background:#ffffff;border:1px solid #d9e3ef;border-radius:22px;box-shadow:0 12px 28px rgba(2,6,23,.18);
+  padding:16px;backdrop-filter:none
+}
+.plan-pill *{color:#0f172a !important;text-shadow:none !important;filter:none !important}
+.plan-pill label{color:#475569 !important}
+.plan-pill select,.plan-pill input[type="date"]{height:48px;padding:0 14px;background:#fff;border-color:#e2e8f0;color:#111827}
+.hero .banner::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(0deg, rgba(15,23,42,.06), transparent 42%)}
+.plan-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end}
+@media (max-width:1100px){.plan-grid{grid-template-columns:1fr 1fr}}
+.plan-pill .btn{height:48px;padding:0 22px;border-radius:12px}
+
+/* Flight list */
+.flight{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);border-radius:20px;background:#fff;padding:18px 20px;box-shadow:0 14px 30px rgba(2,6,23,.10)}
+.flight .meta{display:flex;gap:26px;align-items:center}
+.flight .meta small{color:#6a6f78}
+
+/* ===== Seats / Meals base ===== */
+.seatgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:12px}
+.seat{aspect-ratio:1/1;border:1px solid var(--border);border-radius:12px;display:grid;place-items:center;cursor:pointer}
+.seat.busy{background:#eef2f7;color:#9ca3af;cursor:not-allowed}
+.seat.selected{background:var(--primary);color:#fff;border-color:var(--primary)}
+.meals{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.meal{border:1px solid var(--border);border-radius:20px;background:#fff}
+.meal[aria-checked="true"]{outline:3px solid rgba(27,116,228,.35)}
+.stepper{display:flex;gap:18px;align-items:center;justify-content:center;margin:18px 0 20px}
+.step{display:flex;gap:8px;align-items:center}
+.step .dot{width:28px;height:28px;border:1px solid var(--border);border-radius:999px;display:grid;place-items:center}
+.step.active .dot{background:var(--primary);color:#fff;border-color:var(--primary)}
+.step.done .dot{background:#0ea5e9;color:#023;border-color:#0ea5e9}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:900px){.formgrid{grid-template-columns:1fr}}
+
+/* Scope inputs */
+.page input,.page select,.page textarea{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:14px;background:#fff}
+.page .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border:1px solid var(--border);border-radius:14px;background:#fff;cursor:pointer}
+.page .btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.page .btn[disabled]{opacity:.55;cursor:not-allowed}
+
+/* Seats page components */
+.seats-wrap{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start}
+.seats-side{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 18px 40px rgba(2,6,23,.06)}
+.seats-side .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:#fff;border-radius:999px;padding:8px 12px;font-size:14px}
+.seats-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 18px 40px rgba(2,6,23,.06)}
+.seats-header{text-align:center;margin-bottom:10px;color:#0b3a66;font-weight:700}
+.seats-header:after{content:"";display:block;height:2px;background:#e6eef7;margin:10px auto 0;width:56%}
+
+/* Aisled seatboard */
+.seatboard{
+  display:grid;
+  grid-template-columns: repeat(3,48px) 56px repeat(4,48px) 40px;
+  grid-auto-rows:48px; gap:12px 16px; align-items:center; justify-content:center;
+}
+.sb-num{font-size:12px;color:#1b74e4;display:grid;place-items:center}
+.sb-aisle{pointer-events:none}
+.seatcell{
+  width:48px;height:48px;border-radius:10px;border:1px solid var(--border);
+  background:#e9eef6;display:grid;place-items:center;cursor:pointer;
+  box-shadow:inset 0 0 0 1px rgba(2,6,23,.02);
+  transition:transform .12s ease, box-shadow .12s ease, background-color .12s ease, border-color .12s ease;
+}
+.seatcell:not(.busy):not(.selected):hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(2,6,23,.10);background:#f3f8ff;border-color:#cfe3ff}
+.seatcell.busy{background:#111827;color:#fff;border-color:#111827;cursor:not-allowed;box-shadow:none}
+.seatcell.selected{background:#1b74e4;border-color:#1b74e4;color:#fff;box-shadow:0 10px 22px rgba(27,116,228,.28)}
+.legend{grid-row:2 / span 8; grid-column:9; display:flex; flex-direction:column; gap:22px; align-items:center; justify-content:center}
+.legend .vlabel{writing-mode:vertical-rl; transform:rotate(180deg); color:#0b73d8; font-size:14px; font-weight:600}
+.legend .dot{width:24px;height:24px;border-radius:6px;border:1px solid var(--border)}
+.legend .dot.av{background:#e9eef6}
+.legend .dot.bk{background:#2b2f38;border-color:#2b2f38}
+.seats-cta{display:flex; justify-content:flex-end; margin-top:18px}
+.seats-cta .continue{display:inline-flex; align-items:center; gap:10px; border:1px solid #0b73d8; color:#0b73d8; background:#fff; padding:12px 18px; border-radius:12px; font-weight:600; cursor:pointer}
+.seats-cta .continue:hover{ box-shadow:0 10px 24px rgba(11,115,216,.18) }
+.seats-cta .continue[disabled]{opacity:.6;cursor:not-allowed;box-shadow:none}
+
+/* ===================== MEALS PAGE ===================== */
+main.container[data-page="meals"]{
+  padding-top:18px !important; padding-bottom:0 !important;
+  background:linear-gradient(180deg,#fafcff 0%, #f6f9fc 50%, #f6f9fc 100%) !important;
+  --meals-overhang:28px;
+}
+main.container[data-page="meals"] > h2{
+  max-width:1180px !important; margin:8px auto 14px !important;
+  font-size:28px !important; font-weight:700 !important; color:#0b73d8 !important;
+}
+main.container[data-page="meals"] .meals{
+  max-width:1120px !important; margin:0 auto 16px !important;
+  padding-top:var(--meals-overhang) !important;
+  display:grid !important; grid-template-columns:repeat(3,minmax(280px,1fr)) !important;
+  gap:28px !important; align-items:start !important;
+}
+@media (max-width:1100px){
+  main.container[data-page="meals"] .meals{grid-template-columns:repeat(2,minmax(260px,1fr)) !important}
+}
+@media (max-width:700px){
+  main.container[data-page="meals"] .meals{grid-template-columns:1fr !important}
+}
+main.container[data-page="meals"] .meal{
+  position:relative !important; display:block !important; background:#fff !important;
+  border:1px solid var(--border) !important; border-radius:22px !important;
+  padding:120px 22px 22px !important; min-height:230px !important;
+  box-shadow:0 12px 24px rgba(2,6,23,.10) !important;
+  overflow:visible !important;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease !important;
+}
+main.container[data-page="meals"] .meal:hover{transform:translateY(-2px) !important; box-shadow:0 20px 44px rgba(2,6,23,.14) !important; border-color:#d8e3ff !important}
+main.container[data-page="meals"] .meal > img{
+  position:absolute !important; top:0 !important; left:50% !important;
+  transform:translate(-50%,-60%) !important;
+  width:180px !important; height:180px !important; object-fit:cover !important; border-radius:999px !important;
+  background:#fff !important; box-shadow:0 12px 22px rgba(2,6,23,.16), 0 0 0 8px #fff !important;
+  pointer-events:none !important;
+}
+main.container[data-page="meals"] .meal strong{display:block !important; font-size:16px !important;}
+main.container[data-page="meals"] .meal small{color:#6b7280 !important;}
+main.container[data-page="meals"] .meal[aria-checked="true"]{background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%) !important; outline:none !important; border-color:#1b74e4 !important; box-shadow:0 16px 32px rgba(2,6,23,.12) !important, 0 0 0 2px rgba(27,116,228,.26) !important}
+main.container[data-page="meals"] .meals + .row{
+  max-width:1120px !important; margin:10px auto 8px !important; padding-bottom:12px !important;
+  justify-content:flex-end !important; gap:12px !important;
+}
+@media (max-width:700px){
+  main.container[data-page="meals"] .meal{padding:110px 18px 18px !important; min-height:220px !important}
+  main.container[data-page="meals"] .meal > img{width:168px !important; height:168px !important; transform:translate(-50%,-62%) !important}
+}
+main.container[data-page="meals"] .meal .meal-desc{
+  margin-top:6px;
+  font-size:13px;
+  line-height:1.35;
+  color:#64748b;
+  min-height:2.7em;
+  overflow:hidden;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+}
+
+/* ===================== DETAILS PAGE ===================== */
+.details-wrap{max-width:980px;margin:0 auto}
+.details-card{border:2px solid #0b73d8;border-radius:16px;padding:22px;background:#fff;box-shadow:0 18px 42px rgba(2,6,23,.08)}
+.details-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:800px){.details-grid{grid-template-columns:1fr}}
+.details-actions{display:flex;justify-content:flex-start;gap:14px;margin-top:14px}
+.details-actions .btn.primary{min-width:220px;border-radius:12px;background:#4f46e5;border-color:#4f46e5}
+.details-actions .btn{min-width:140px}
+main.container:has(.details-card){padding-top:28px}
+
+/* ===================== CONFIRM PAGE ANIM ===================== */
+.confirm-wrap{
+  min-height:60vh; display:grid; place-items:center; position:relative; overflow:hidden;
+  background:linear-gradient(180deg,#e9f4ff 0%, #f7fbff 60%, #ffffff 100%);
+  border-radius:28px; border:1px solid var(--border);
+  box-shadow:0 24px 60px rgba(2,6,23,.12);
+}
+.sky{
+  position:absolute; inset:-20% -10% -10% -10%; z-index:0;
+  background:
+    radial-gradient(1200px 600px at 20% 20%, rgba(255,255,255,.9), transparent 60%),
+    radial-gradient(900px 500px at 80% 10%, rgba(255,255,255,.9), transparent 60%),
+    radial-gradient(700px 500px at 60% 80%, rgba(14,165,233,.12), transparent 60%),
+    linear-gradient(180deg,#bfe5ff 0%, #dff1ff 40%, #ffffff 100%);
+  filter:saturate(110%);
+}
+.cloud{position:absolute; width:280px; height:160px; border-radius:999px; background:#fff;
+  box-shadow:0 36px 80px rgba(2,6,23,.12), 120px 20px 0 40px #fff, 220px 10px 0 30px #fff, -40px 20px 0 30px #fff;
+  opacity:.8; animation:cloud-move 42s linear infinite}
+.cloud.c2{top:18%; left:-20%; animation-duration:52s; transform:scale(.9)}
+.cloud.c3{top:62%; left:-28%; animation-duration:60s; transform:scale(1.1)}
+@keyframes cloud-move{from{transform:translateX(-10vw)} to{transform:translateX(120vw)}}
+.plane{position:absolute; width:180px; top:48%; left:-12%; filter:drop-shadow(0 18px 30px rgba(2,6,23,.22)); animation:plane-fly 12s ease-in-out infinite}
+@keyframes plane-fly{0%{transform:translate(-10vw,-3vh) rotate(6deg)} 50%{transform:translate(50vw,-6vh) rotate(2deg)} 100%{transform:translate(120vw,-3vh) rotate(6deg)}}
+.confirm-card{position:relative; z-index:2; text-align:center; max-width:720px}
+.confirm-card h1{color:#1b74e4;margin-top:8px}
+.confirm-card .btn{margin:10px auto 0}
+
+/* ---------- Page Transition Overlay ---------- */
+#skyTransition{position:fixed; inset:0; z-index:9998; pointer-events:none; opacity:0; display:grid; place-items:center; overflow:hidden;}
+#skyTransition .layer{
+  position:absolute; inset:-10% -10% -10% -10%;
+  background:
+    radial-gradient(900px 500px at 12% 18%, rgba(255,255,255,.9), transparent 60%),
+    radial-gradient(700px 480px at 78% 22%, rgba(255,255,255,.9), transparent 60%),
+    linear-gradient(180deg,#bfe5ff 0%, #e6f4ff 60%, #ffffff 100%);
+  transform:translateX(-110vw);
+}
+#skyTransition .plane{width:120px; transform:translate(-60vw, -2vh) rotate(8deg); filter:drop-shadow(0 14px 24px rgba(2,6,23,.22));}
+#skyTransition.run{opacity:1; animation:fadeOut .32s ease forwards}
+#skyTransition.run .layer{animation:cloudWipe .32s ease forwards}
+#skyTransition.run .plane{animation:planeSwipe .32s ease forwards}
+@keyframes cloudWipe{0%{transform:translateX(-110vw)} 55%{transform:translateX(0)} 100%{transform:translateX(110vw)}}
+@keyframes planeSwipe{0%{transform:translate(-60vw,-2vh) rotate(8deg)} 55%{transform:translate(0, -4vh) rotate(0)} 100%{transform:translate(60vw,-2vh) rotate(4deg)}}
+@keyframes fadeOut{0%,70%{opacity:1} 100%{opacity:0}}
+
+/* Optional safety: hide any old contrail element if present */
+#contrail{display:none !important}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce){
+  .btn,.card,.nav a{transition:none}
+  .auth-shell::after,.plane,.cloud,#skyTransition,#contrail{display:none !important}
+}
+label:has(> #rememberCard){
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:6px !important;
+  margin-top:6px;
+  width:auto !important;
+}
+label:has(> #rememberCard) span{margin:0 !important}
+#rememberCard{inline-size:16px; block-size:16px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="skyTransition" aria-hidden="true">
+  <div class="layer"></div>
+  <svg class="plane" viewBox="0 0 256 256" fill="currentColor" style="color:#1b74e4" aria-hidden="true">
+    <path d="M236 120c4 2 4 14 0 16l-72 16-52 52c-3 3-8 3-11 0l-13-13 34-44-58 14-21 20-21-21 20-21 14-58-44 34-13-13c-3-3-3-8 0-11l52-52 16-72c2-4 14-4 16 0l28 96 105 38z"/>
+  </svg>
+</div>
+
+<canvas id="contrail" width="0" height="0"></canvas>
+
+<div id="providerModal" class="modal" aria-hidden="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,.28);z-index:9999">
+  <div class="modalCard" style="width:min(420px,92%);background:#fff;border:1px solid var(--border);border-radius:18px;padding:16px;box-shadow:var(--shadow)">
+    <h3 id="providerTitle" style="margin:0 0 8px">Sign in</h3>
+    <p id="providerDesc" style="margin:0 0 14px;color:#6b7280">Continue with your account.</p>
+    <div class="stack">
+      <div><label>Email</label><input id="provEmail" type="email" placeholder="you@example.com"></div>
+      <div><label>Password</label><input id="provPass" type="password" placeholder="••••••••"></div>
+      <div class="row" style="justify-content:flex-end">
+        <button class="btn" onclick="closeProvider()">Cancel</button>
+        <button class="btn primary" onclick="providerSubmit()">Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s);
+const fmt = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', currencyDisplay: 'narrowSymbol' });
+const LS='fda_state_v6';
+const USERS_LS='fda_users_v1';
+const CARDS_LS='fda_cards_v1';
+const PASSENGER_LS='fda_passenger_v1';
+const TRIPS_LS='fda_trips_v1';
+
+const initial={
+  user:null,
+  search:{from:'SYD',to:'BNE',date:'2025-10-25'},
+  booking:{departId:null,returnId:null,seat:null,mealId:null,totalCents:0,__finalized:false},
+  passenger:null
+};
+let STATE=JSON.parse(localStorage.getItem(LS)||'null')||structuredClone(initial);
+const save=()=>localStorage.setItem(LS,JSON.stringify(STATE));
+const routes={}; const route=(p,f)=>routes[p]=f; const go=(p)=>location.hash=p;
+window.addEventListener('hashchange',render);
+
+let LAST_SELECTED_SEAT_ID = null;
+
+function getLocalUsers(){ try{ return JSON.parse(localStorage.getItem(USERS_LS)||'[]'); }catch{ return []; } }
+function setLocalUsers(list){ localStorage.setItem(USERS_LS, JSON.stringify(list||[])); }
+function allUsers(db){ return [...(db?.users||[]), ...getLocalUsers()]; }
+
+function getCardMap(){ try{ return JSON.parse(localStorage.getItem(CARDS_LS)||'{}'); }catch{ return {}; } }
+function getSavedCard(){ if(!STATE.user) return null; return getCardMap()[STATE.user.email]||null; }
+function saveCardForUser(card){ if(!STATE.user) return; const m=getCardMap(); m[STATE.user.email]=card; localStorage.setItem(CARDS_LS, JSON.stringify(m)); }
+const mask = n => (n||'').replace(/\s+/g,'').replace(/.(?=.{4})/g,'•').replace(/(.{4})/g,'$1 ').trim();
+
+function getPassengerMap(){ try{ return JSON.parse(localStorage.getItem(PASSENGER_LS)||'{}'); }catch{ return {}; } }
+function getSavedPassenger(){ if(!STATE.user) return null; return getPassengerMap()[STATE.user.email]||null; }
+function savePassengerForUser(p){ if(!STATE.user) return; const m=getPassengerMap(); m[STATE.user.email]=p; localStorage.setItem(PASSENGER_LS, JSON.stringify(m)); }
+
+function getTripsMap(){ try{ return JSON.parse(localStorage.getItem(TRIPS_LS)||'{}'); }catch{ return {}; } }
+function getTrips(){ if(!STATE.user) return []; const m=getTripsMap(); return m[STATE.user.email]||[]; }
+function saveTripForUser(trip){
+  if(!STATE.user) return;
+  const m=getTripsMap(); const k=STATE.user.email;
+  const list=m[k]||[];
+  list.unshift(trip);
+  m[k]=list.slice(0,50);
+  localStorage.setItem(TRIPS_LS, JSON.stringify(m));
+}
+
+let FORCE_EDIT_DETAILS = false;
+
+let DB=null;
+async function ensureDB(){
+  if(DB) return DB;
+  const res=await fetch('./db.json',{cache:'no-store'});
+  if(!res.ok) throw new Error('Place db.json next to index.html — '+res.status+' '+res.statusText);
+  DB=await res.json();
+  DB.airports.sort((a,b)=>a.city.localeCompare(b.city));
+  return DB;
+}
+
+const tHM=(iso)=>new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+const dur=(a,b)=>{const ms=(new Date(b)-new Date(a));const h=Math.floor(ms/36e5),m=Math.round((ms%36e5)/6e4);return `${h}H, ${m}M`;};
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function minutesAdd(iso,mins){return new Date(new Date(iso).getTime()+mins*60000).toISOString();}
+function iataToId(i){return DB.airports.find(a=>a.iata===i)?.id;}
+function ensureFlight(fromI,toI){const o=iataToId(fromI),d=iataToId(toI);let f=DB.flights.find(x=>x.originId===o&&x.destinationId===d); if(!f){f={id:Date.now()+Math.random(),number:`FD${rand(100,999)}`,originId:o,destinationId:d};DB.flights.push(f);} return f;}
+function ensureRouteInstances(from,to,yyyy_mm_dd){
+  const f=ensureFlight(from,to);
+  const exists=DB.flightInstances.some(x=>x.flightId===f.id && new Date(x.departAt).toISOString().slice(0,10)===yyyy_mm_dd);
+  if(exists) return;
+  const base=new Date(yyyy_mm_dd+'T00:00:00');
+  [8*60+15, 15*60+20, 20*60+15].forEach((mins,i)=>{
+    const departAt=new Date(base.getTime()+mins*60000).toISOString();
+    const durationMin=rand(120,200);
+    const arriveAt=minutesAdd(departAt,durationMin);
+    const fare=rand(95,185)*100;
+    DB.flightInstances.push({id:Date.now()+i+Math.random(),flightId:f.id,departAt,arriveAt,fareCents:fare});
+  });
+}
+
+function ensureSeatMap(instanceId, rows=['A','B','C','D','E','F','G','H'], cols=[1,2,3,4,5,6,7]){
+  if(!DB.seats) DB.seats = [];
+  let rec = DB.seats.find(s => s.instanceId === instanceId);
+  if(rec) return rec;
+  const all = [];
+  for(const r of rows){ for(const c of cols){ all.push(`${r}${c}`); } }
+  const taken = all.filter(() => Math.random() < 0.22);
+  rec = { instanceId, taken };
+  DB.seats.push(rec);
+  return rec;
+}
+
+const Header=(assets,active='')=>`
+<header>
+  <nav class="container row between">
+    <div class="brand">
+      <img src="${assets.logo}" width="40" height="40" style="border-radius:10px" alt="">
+      <a href="#/home"><strong>FlyDreamAir.</strong></a>
+    </div>
+    <div class="nav">
+      <a href="#/home" ${active==='home'?'aria-current="page"':''}>Home</a>
+      <a href="#/bookings/depart" ${active==='bookings'?'aria-current="page"':''}>Bookings</a>
+      <a href="#/details" ${active==='billing'?'aria-current="page"':''}>Billing</a>
+      <a href="#/contact" ${active==='contact'?'aria-current="page"':''}>Contact Us</a>
+    </div>
+    <div class="row" style="align-items:center">
+      <div class="search-pill"><span>🔍</span>
+        <input id="globalSearch" placeholder="Search" style="border:none;outline:none;background:transparent;width:100%"
+               onkeydown="if(event.key==='Enter') globalSearch()">
+      </div>
+      <a href="#/profile"><img class="avatar" src="${(STATE.user?.avatar)|| (DB?.assets?.avatar || './assets/user.jpg')}" width="40" height="40" alt=""></a>
+    </div>
+  </nav>
+</header>`;
+const Footer=()=>`<footer><div class="container row between"><small>© 2025 FlyDreamAir</small><small>Prototype build</small></div></footer>`;
+
+function SideRail(assets, active){
+  const item=(k,icon,label,route)=>`<div class="item ${active===k?'active':''}" onclick="${route}">
+    <div style="font-size:20px">${icon}</div><div style="line-height:1.05">${label.replace(' ','<br>')}</div></div>`;
+  return `<aside class="rail">
+    ${item('book','✈️','Book Tickets',"railGoto('book')")}
+    ${item('passenger','🎒','Passenger Detail',"railGoto('passenger')")}
+    ${item('details','🧳','Flight Details',"railGoto('details')")}
+    <div class="item ${active==='user'?'active':''}" onclick="railGoto('user')">
+      <img class="avatar" src="${(STATE.user?.avatar)||assets.avatar}" alt=""><div style="line-height:1.05">User<br>Name</div>
+    </div>
+  </aside>`;
+}
+
+function planeImageSrc(){ return './assets/air.png'; }
+function Auth(assets){
+  const remembered = JSON.parse(localStorage.getItem('fda_last_login')||'{}');
+  const img = planeImageSrc();
+  return `
+  <div class="auth-shell">
+    <section class="auth-left">
+      <div class="brandRow"><img src="${assets.logo}" width="56" height="56" alt=""><strong>FlyDreamAir.</strong></div>
+      <div class="heroPlaneWrap">
+        <img class="hero_img" src="${img}" onerror="this.onerror=null;this.src='./assets/main.jpg'" alt="">
+      </div>
+    </section>
+    <section class="auth-right">
+      <div class="auth-card">
+        <div class="authCardHead"><h2 class="auth-title">Sign In</h2>
+          <div class="toggleLink">Don’t have an account? <a href="#/create">Create one</a></div></div>
+        <div class="socialRow">
+          <button class="socialBtn" onclick="openProvider('google')"><span>🔵</span><span>Sign in with Google</span></button>
+          <button class="socialBtn" onclick="openProvider('facebook')"><span>🔷</span><span>Sign in with Facebook</span></button>
+        </div>
+        <div class="orRule">— OR —</div>
+        <div class="stack">
+          <div><label>Email Address</label><input id="lgEmail" type="email" placeholder="you@example.com" value="${remembered.email||''}"></div>
+          <div><label>Password</label><input id="lgPass" type="password" placeholder="••••••••" value="${remembered.pass||''}"></div>
+          <div class="row between" style="align-items:center">
+            <div class="row" style="gap:8px;align-items:center"><input id="rememberCb" type="checkbox" ${remembered.email?'checked':''}>
+              <small>Remember me</small></div>
+            <small><a href="#/forgot">Forgot password?</a></small>
+          </div>
+          <div class="row" style="justify-content:center"><button class="btn primary" onclick="login()">Sign in</button></div>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+function Create(assets){
+  const img = planeImageSrc();
+  return `
+  <div class="auth-shell">
+    <section class="auth-left">
+      <div class="brandRow"><img src="${assets.logo}" width="56" height="56" alt=""><strong>FlyDreamAir.</strong></div>
+      <div class="heroPlaneWrap">
+        <img class="hero_img" src="${img}" onerror="this.onerror=null;this.src='./assets/main.jpg'" alt="">
+      </div>
+    </section>
+    <section class="auth-right">
+      <div class="auth-card">
+        <div class="authCardHead"><h2 class="auth-title">Create Account</h2>
+          <div class="toggleLink">Already have an account? <a href="#/auth">Log in</a></div></div>
+        <div class="socialRow">
+          <button class="socialBtn" onclick="openProvider('google')"><span>🔵</span><span>Sign up with Google</span></button>
+          <button class="socialBtn" onclick="openProvider('facebook')"><span>🔷</span><span>Sign up with Facebook</span></button>
+        </div>
+        <div class="orRule">— OR —</div>
+        <div class="stack">
+          <div><label>Full Name</label><input id="caName" placeholder="Jane Doe"></div>
+          <div><label>Email Address</label><input id="caEmail" type="email" placeholder="you@example.com"></div>
+          <div><label>Password</label><input id="caPass" type="password" placeholder="Min 6 chars"></div>
+          <div class="row" style="justify-content:center"><button class="btn primary" onclick="createAccount()">Create Account</button></div>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+
+let providerCtx=null;
+function openProvider(kind){
+  providerCtx={kind};
+  $('#providerTitle').textContent = kind==='google'?'Sign in with Google':'Sign in with Facebook';
+  $('#providerDesc').textContent = 'Enter your email and password to continue.';
+  const remembered = JSON.parse(localStorage.getItem('fda_last_login')||'{}');
+  $('#provEmail').value = remembered.email||'';
+  $('#provPass').value = remembered.pass||'';
+  $('#providerModal').style.display='flex';
+}
+function closeProvider(){ $('#providerModal').style.display='none'; }
+async function providerSubmit(){
+  const email=$('#provEmail').value.trim(), pass=$('#provPass').value.trim();
+  if(!email||!pass){ alert('Enter email and password'); return; }
+  const db=await ensureDB();
+  const u=allUsers(db).find(x=>x.email===email && x.password===pass);
+  if(!u){ alert('Invalid credentials (demo: demo@flydreamair.com / demo123)'); return; }
+  STATE.user=u;
+  STATE.passenger = getSavedPassenger() || STATE.passenger;
+  save();
+  localStorage.setItem('fda_last_login', JSON.stringify({email,pass}));
+  closeProvider(); go('/home');
+}
+
+const Forgot=(assets)=>`
+${Header(assets,'contact')}
+<main class="container" style="padding:36px 0 34px">
+  <div class="row" style="gap:24px;align-items:stretch">
+    <section class="card" style="flex:1;padding:28px">
+      <img src="${assets.logo}" width="80">
+      <div class="stack" style="margin-top:12px">
+        <h3>Important Information</h3>
+        <ul>
+          <li>Do <b>not</b> reveal your password to anybody</li>
+          <li>Do <b>not</b> reuse passwords</li>
+          <li>Use Alphanumeric passwords</li>
+          <li>Your Login ID and security answer are required</li>
+          <li>Login IDs are case sensitive</li>
+        </ul>
+      </div>
+    </section>
+    <section class="card" style="flex:1;padding:28px;background:#0ea5e9;color:#fff;border-color:#0ea5e9">
+      <h2>Forgot password?</h2>
+      <div class="stack" style="margin-top:14px">
+        <input id="fpEmail" type="email" placeholder="Please fill in your email address">
+        <input id="fpLogin" placeholder="Please fill in your Login ID">
+        <div class="row between" style="margin-top:8px">
+          <a href="#/auth" style="color:#fff;text-decoration:underline">Back to login</a>
+          <button class="btn" style="background:#fff;color:#0b74a5" onclick="alert('Reset email sent (demo)')">Continue</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+${Footer()}`;
+
+function Home(assets,airports){
+  return `
+${Header(assets,'home')}
+<main class="container hero">
+  <div class="rail-wrap">
+    ${SideRail(assets,'book')}
+    <section>
+      <div class="banner">
+        <img src="${assets.heroPlane}" alt="Plane banner">
+        <div class="plan-pill">
+          <div style="font-weight:600;margin-bottom:6px">Plan Your Trip</div>
+          <div class="plan-grid">
+            <div><label>From</label>
+              <select id="fromSel">${airports.map(a=>`<option value="${a.iata}" ${STATE.search.from===a.iata?'selected':''}>${a.city} (${a.iata})</option>`).join('')}</select>
+            </div>
+            <div><label>To</label>
+              <select id="toSel">${airports.map(a=>`<option value="${a.iata}" ${STATE.search.to===a.iata?'selected':''}>${a.city} (${a.iata})</option>`).join('')}</select>
+            </div>
+            <div><label>On</label><input id="dateSel" type="date" value="${STATE.search.date}"></div>
+            <div><button class="btn primary" onclick="startSearch()">Search</button></div>
+          </div>
+        </div>
+      </div>
+      <section class="stack" style="margin-top:28px">
+        <h2>About us</h2>
+        <p style="max-width:900px">FlyDreamAir is a boutique international airline that turns travel into a story. With comfortable cabins, warm onboard service, and thoughtfully designed routes connecting secondary cities and major hubs, travel feels effortless.</p>
+      </section>
+    </section>
+  </div>
+</main>
+${Footer()}`;
+}
+
+function Bookings(assets,kind){
+  const forward=kind==='depart';
+  const from=forward?STATE.search.from:STATE.search.to;
+  const to  =forward?STATE.search.to  :STATE.search.from;
+  const date=STATE.search.date;
+  ensureRouteInstances(from,to,date);
+  const list=DB.flightInstances.filter(x=>{
+    const f=DB.flights.find(ff=>ff.id===x.flightId);
+    const o=DB.airports.find(a=>a.id===f.originId).iata;
+    const d=DB.airports.find(a=>a.id===f.destinationId).iata;
+    return o===from && d===to && new Date(x.departAt).toISOString().slice(0,10)===date;
+  }).sort((a,b)=>a.departAt.localeCompare(b.departAt));
+  const selected=forward?STATE.booking.departId:STATE.booking.returnId;
+  const title=forward?'Departing flight':'Return flight';
+
+  return `
+  ${Header(assets,'bookings')}
+  <main class="container" style="padding:28px 0 32px">
+    <div class="rail-wrap">
+      ${SideRail(assets,'book')}
+      <section>
+        <div class="banner" style="margin-bottom:18px">
+          <img src="${assets.heroPlane}" alt="">
+        </div>
+        <h1 style="text-align:center;margin:12px 0 26px">${title}</h1>
+        <div class="stack">
+          ${list.map(x=>{
+            const f=DB.flights.find(ff=>ff.id===x.flightId);
+            const o=DB.airports.find(a=>a.id===f.originId), d=DB.airports.find(a=>a.id===f.destinationId);
+            const sel=selected===x.id;
+            return `<article class="flight">
+              <div class="meta">
+                <div><small>Depart</small><div style="font-weight:800;font-size:22px">${tHM(x.departAt)}</div><small>${o.city}</small></div>
+                <div class="pill">${dur(x.departAt,x.arriveAt)}</div>
+                <div><small>Arrive</small><div style="font-weight:800;font-size:22px">${tHM(x.arriveAt)}</div><small>${d.city}</small></div>
+              </div>
+              <div class="row" style="align-items:center;gap:16px">
+                <strong style="font-size:22px;color:#1b1464">${fmt.format(x.fareCents/100)}</strong>
+                <button class="btn primary" onclick="chooseFlight('${kind}',${x.id})">${sel?'Selected':'Choose'}</button>
+              </div>
+            </article>`;
+          }).join('')}
+        </div>
+      </section>
+    </div>
+  </main>
+  ${Footer()}`;
+}
+
+function Seats(assets){
+  const dep=DB.flightInstances.find(i=>i.id===STATE.booking.departId);
+  const ret=DB.flightInstances.find(i=>i.id===STATE.booking.returnId);
+  if(!dep||!ret){ go('/bookings/depart'); return ''; }
+
+  const fDep=DB.flights.find(f=>f.id===dep.flightId);
+  const o=DB.airports.find(a=>a.id===fDep.originId), d=DB.airports.find(a=>a.id===fDep.destinationId);
+
+  const rows=['A','B','C','D','E','F','G','H'];
+  const cols=[1,2,3,4,5,6,7];
+
+  const seatRec = ensureSeatMap(dep.id, rows, cols);
+  const taken = new Set(seatRec.taken);
+
+  const numsLeft  = [1,2,3].map(n => `<div class="sb-num">${n}</div>`).join('');
+  const numsRight = [4,5,6,7].map(n => `<div class="sb-num">${n}</div>`).join('');
+  const numsRow = `${numsLeft}<div class="sb-aisle"></div>${numsRight}<div></div>`;
+
+  const gridRows = rows.map(letter=>{
+    const leftSeats = [1,2,3].map(n=>{
+      const id = `${letter}${n}`;
+      const busy = taken.has(id);
+      const sel  = STATE.booking.seat===id;
+      return `<div class="seatcell${busy?' busy':''}${sel?' selected':''}" data-id="${id}" onclick="seatClick(event)"></div>`;
+    }).join('');
+    const rightSeats = [4,5,6,7].map(n=>{
+      const id = `${letter}${n}`;
+      const busy = taken.has(id);
+      const sel  = STATE.booking.seat===id;
+      return `<div class="seatcell${busy?' busy':''}${sel?' selected':''}" data-id="${id}" onclick="seatClick(event)"></div>`;
+    }).join('');
+    return `${leftSeats}<div class="sb-aisle"></div>${rightSeats}`;
+  }).join('');
+
+  return `
+  ${Header(assets,'bookings')}
+  <main class="container" style="padding:28px 0 32px">
+    <div class="seats-wrap">
+      <aside class="seats-side">
+        <div class="stack">
+          <div class="chip">${o.city} (${o.iata})</div>
+          <div class="chip">⇄</div>
+          <div class="chip">${d.city} (${d.iata})</div>
+        </div>
+        <div style="margin-top:16px;display:flex;align-items:center;gap:10px">
+          <img class="avatar" src="${(STATE.user?.avatar)||assets.avatar}" width="40" height="40" alt="">
+          <div>Adult 1</div>
+        </div>
+      </aside>
+
+      <section class="seats-card">
+        <div class="seats-header">Front Of Plane</div>
+        <div class="seatboard">
+          ${numsRow}
+          ${gridRows}
+          <div class="legend">
+            <div class="vlabel">Available</div><div class="dot av"></div>
+            <div class="vlabel" style="margin-top:8px">Booked</div><div class="dot bk"></div>
+          </div>
+        </div>
+
+        <div class="seats-cta">
+          <button class="continue" onclick="go('/bookings/return')">Back</button>
+          <span style="width:10px"></span>
+          <button class="continue" onclick="go('/meals')" ${STATE.booking.seat?'':'disabled'}>
+            Continue <span aria-hidden="true">›</span>
+          </button>
+        </div>
+      </section>
+    </div>
+  </main>
+  ${Footer()}`;
+}
+function seatClick(e){
+  const el=e.currentTarget;
+  if(el.classList.contains('busy')) return;
+  setSeat(el.getAttribute('data-id'));
+}
+
+function Meals(assets){
+  const cards = DB.meals.map(m => {
+    const checked = STATE.booking.mealId===m.id;
+    return (
+      '<label class="meal" role="radio" aria-checked="'+checked+'" onclick="setMeal('+m.id+')">' +
+        '<img src="'+m.image+'" alt="'+(m.subtitle||'')+'" />' +
+        '<strong>'+m.name+'</strong>' +
+        '<small>'+ (m.subtitle||'') +'</small>' +
+        '<p class="meal-desc">'+ (m.desc || ("A tasty "+(m.subtitle||"meal").trim().toLowerCase()+" with seasonal sides.")) +'</p>' +
+      '</label>'
+    );
+  }).join('');
+
+  return (
+    Header(assets,'bookings') +
+    '<main class="container" data-page="meals">' +
+      '<h2>Meals</h2>' +
+      '<section class="meals" role="radiogroup" aria-label="Meal selection">' + cards + '</section>' +
+      '<div class="row">' +
+        '<button class="btn primary" onclick="go(\'/details\')" ' + (STATE.booking.mealId ? '' : 'disabled') + '>Continue</button>' +
+      '</div>' +
+    '</main>' +
+    Footer()
+  );
+}
+
+function Details(assets){
+  if(!FORCE_EDIT_DETAILS){
+    const saved = getSavedPassenger();
+    if(saved){
+      STATE.passenger = saved; save();
+      go('/billing');
+      return '';
+    }
+  }
+  FORCE_EDIT_DETAILS = false;
+
+  const seed = STATE.passenger || getSavedPassenger() || {
+    firstName: STATE.user?.firstName || '',
+    lastName:  STATE.user?.lastName  || '',
+    phoneCode: '+61',
+    phone:     '',
+    email:     STATE.user?.email || '',
+    street:    '',
+    apt:       '',
+    state:     '',
+    zip:       ''
+  };
+
+  return `
+  ${Header(assets,'billing')}
+  <main class="container">
+    <div class="stepper">
+      <div class="step done"><div class="dot">✓</div><small>Cart</small></div>
+      <div class="step active"><div class="dot">2</div><small>Details</small></div>
+      <div class="step"><div class="dot">3</div><small>Payment</small></div>
+      <div class="step"><div class="dot">4</div><small>Confirm</small></div>
+    </div>
+
+    <div class="details-wrap">
+      <section class="details-card">
+        <h3 style="margin-bottom:12px">Passenger Details</h3>
+
+        <div class="details-grid">
+          <div><label>First Name</label><input id="detFirst" value="${seed.firstName}"></div>
+          <div><label>Last Name</label><input id="detLast" value="${seed.lastName}"></div>
+        </div>
+
+        <div class="row" style="gap:12px;margin-top:14px">
+          <div style="flex:0 0 120px">
+            <label>Code</label>
+            <select id="detCode">
+              ${['+61','+1','+44','+65','+81'].map(c=>`<option ${seed.phoneCode===c?'selected':''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div style="flex:1">
+            <label>Phone Number</label>
+            <input id="detPhone" inputmode="tel" value="${seed.phone}">
+          </div>
+        </div>
+
+        <div style="margin-top:14px"><label>Email</label><input id="detEmail" type="email" value="${seed.email}"></div>
+        <div style="margin-top:14px"><label>Street Address</label><input id="detStreet" value="${seed.street}"></div>
+
+        <div class="row" style="gap:12px;margin-top:14px">
+          <div style="flex:1"><label>Apt Number</label><input id="detApt" value="${seed.apt}"></div>
+          <div style="flex:1"><label>State</label><input id="detState" value="${seed.state}"></div>
+          <div style="flex:1"><label>Zip</label><input id="detZip" inputmode="numeric" value="${seed.zip}"></div>
+        </div>
+
+        <div class="details-actions">
+          <button class="btn" onclick="go('/meals')">Cancel</button>
+          <button class="btn primary" onclick="saveDetails()">Save</button>
+        </div>
+      </section>
+    </div>
+  </main>
+  ${Footer()}`;
+}
+function saveDetails(){
+  const pax={
+    firstName: $('#detFirst').value.trim(),
+    lastName:  $('#detLast').value.trim(),
+    phoneCode: $('#detCode').value,
+    phone:     $('#detPhone').value.trim(),
+    email:     $('#detEmail').value.trim(),
+    street:    $('#detStreet').value.trim(),
+    apt:       $('#detApt').value.trim(),
+    state:     $('#detState').value.trim(),
+    zip:       $('#detZip').value.trim()
+  };
+  if(!pax.firstName || !pax.lastName || !pax.email){
+    alert('Please fill First name, Last name and Email.');
+    return;
+  }
+  STATE.passenger = pax; save();
+  savePassengerForUser(pax);
+  go('/billing');
+}
+
+function Billing(assets){
+  const dep=DB.flightInstances.find(i=>i.id===STATE.booking.departId);
+  const ret=DB.flightInstances.find(i=>i.id===STATE.booking.returnId);
+  if(!dep||!ret){ go('/bookings/depart'); return ''; }
+
+  const mustPax = STATE.passenger || getSavedPassenger();
+  if(!mustPax){ go('/details'); return ''; }
+
+  const total=dep.fareCents+ret.fareCents; STATE.booking.totalCents=total; save();
+  const saved = getSavedCard();
+
+  const paxCard = `
+    <div class="card" style="padding:12px;margin:10px 0;background:#f7fbff;border-color:#dbeafe">
+      <div class="row between" style="align-items:center">
+        <div>
+          <small>Passenger</small>
+          <div><strong>${mustPax.firstName} ${mustPax.lastName}</strong></div>
+          <div><small>${mustPax.phoneCode} ${mustPax.phone} • ${mustPax.email}</small></div>
+        </div>
+        <button class="btn" onclick="editDetails()">Edit details</button>
+      </div>
+    </div>`;
+
+  return `
+  ${Header(assets,'billing')}
+  <main class="container" style="padding:28px 0 32px">
+    <div class="stepper">
+      <div class="step done"><div class="dot">✓</div><small>Cart</small></div>
+      <div class="step done"><div class="dot">✓</div><small>Details</small></div>
+      <div class="step active"><div class="dot">3</div><small>Payment</small></div>
+      <div class="step"><div class="dot">4</div><small>Confirm</small></div>
+    </div>
+    <div class="row" style="gap:22px;align-items:flex-start">
+      <section class="card" style="flex:1;padding:20px">
+        <h3>Add new card</h3>
+        ${paxCard}
+        ${saved ? `<div class="card" style="padding:12px;margin:10px 0;background:#f7fbff;border-color:#dbeafe">
+            <div class="row between" style="align-items:center">
+              <div><small>Saved card</small><div><strong>${mask(saved.num)}</strong> • ${saved.name}</div></div>
+              <button class="btn primary" onclick="pay(true)">Use saved card</button>
+            </div>
+          </div>` : ''}
+        <div class="stack" style="margin-top:12px">
+          <div><label>Card number</label><input id="ccNum" placeholder="1234 5678 9012 3456" inputmode="numeric" maxlength="19" value="${saved?.num||''}"></div>
+          <div><label>Card owner</label><input id="ccName" placeholder="Name on card" value="${saved?.name||''}"></div>
+          <div class="row">
+            <div style="flex:0 0 98px"><label>MM</label><input id="ccMM" maxlength="2" placeholder="12" value="${saved?.mm||''}"></div>
+            <div style="flex:0 0 98px"><label>YY</label><input id="ccYY" maxlength="2" placeholder="27" value="${saved?.yy||''}"></div>
+            <div style="flex:0 0 120px"><label>CVV</label><input id="ccCVV" maxlength="4" placeholder="123"></div>
+          </div>
+          <label style="display:flex;gap:8px;align-items:center;margin-top:6px">
+            <input type="checkbox" id="rememberCard" ${saved?'checked':''}> <span>Remember this card for next time</span>
+          </label>
+        </div>
+      </section>
+      <aside class="card" style="width:400px;padding:20px">
+        <h3>Order</h3>
+        <div class="stack" style="margin-top:12px">
+          <div class="row between"><small>Depart</small><small>${fmt.format(dep.fareCents/100)}</small></div>
+          <div class="row between"><small>Return</small><small>${fmt.format(ret.fareCents/100)}</small></div>
+          <hr style="border:none;border-top:1px solid var(--border)">
+          <div class="row between"><strong>Total:</strong><strong>${fmt.format(total/100)}</strong></div>
+          <button class="btn primary" onclick="pay()">Review your order</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+  ${Footer()}`;
+}
+function editDetails(){ FORCE_EDIT_DETAILS = true; go('/details'); }
+
+function Review(assets){
+  const dep=DB.flightInstances.find(i=>i.id===STATE.booking.departId);
+  const ret=DB.flightInstances.find(i=>i.id===STATE.booking.returnId);
+  const meal=DB.meals.find(m=>m.id===STATE.booking.mealId);
+  const fDep=DB.flights.find(f=>f.id===dep.flightId);
+  const o=DB.airports.find(a=>a.id===fDep.originId), d=DB.airports.find(a=>a.id===fDep.destinationId);
+  const total=(dep.fareCents+ret.fareCents);
+  const pax = STATE.passenger || getSavedPassenger();
+  return `
+  ${Header(assets,'billing')}
+  <main class="container" style="padding:28px 0 32px">
+    <div class="stepper">
+      <div class="step done"><div class="dot">✓</div><small>Cart</small></div>
+      <div class="step done"><div class="dot">✓</div><small>Details</small></div>
+      <div class="step done"><div class="dot">✓</div><small>Payment</small></div>
+      <div class="step active"><div class="dot">4</div><small>Confirm</small></div>
+    </div>
+    <div class="row" style="gap:22px;align-items:flex-start">
+      <section class="card" style="flex:1;padding:20px">
+        <h3>Review your order</h3>
+        <div class="stack" style="margin-top:12px">
+          <div class="card" style="padding:14px">
+            <strong>Passenger</strong><br>
+            <small>${pax?.firstName||STATE.user?.firstName||'Guest'} ${pax?.lastName||STATE.user?.lastName||''}</small>
+          </div>
+          ${pax ? `
+          <div class="card" style="padding:14px">
+            <strong>Contact</strong>
+            <div><small>${pax.phoneCode} ${pax.phone} • ${pax.email}</small></div>
+            <div><small>${pax.street}${pax.apt?(', Apt '+pax.apt):''}, ${pax.state} ${pax.zip}</small></div>
+          </div>` : '' }
+          <div class="card" style="padding:14px">
+            <strong>Route</strong><br>
+            <small>${o.city} (${o.iata}) → ${d.city} (${d.iata}) on ${STATE.search.date}</small>
+          </div>
+          <div class="card" style="padding:14px">
+            <strong>Depart</strong>
+            <div class="row between"><small>${tHM(dep.departAt)} → ${tHM(dep.arriveAt)} (${dur(dep.departAt,dep.arriveAt)})</small><small>${fmt.format(dep.fareCents/100)}</small></div>
+          </div>
+          <div class="card" style="padding:14px">
+            <strong>Return</strong>
+            <div class="row between"><small>${tHM(ret.departAt)} → ${tHM(ret.arriveAt)} (${dur(ret.departAt,ret.arriveAt)})</small><small>${fmt.format(ret.fareCents/100)}</small></div>
+          </div>
+          <div class="card" style="padding:14px">
+            <strong>Seat</strong><br><small>${STATE.booking.seat||'Not selected'}</small>
+          </div>
+          <div class="card" style="padding:14px;display:flex;align-items:center;gap:12px">
+            <img src="${meal.image}" width="56" height="56" style="border-radius:999px"><div><strong>${meal.name}</strong><div><small>${meal.subtitle}</small></div></div>
+          </div>
+        </div>
+      </section>
+      <aside class="card" style="width:400px;padding:20px">
+        <h3>Total</h3>
+        <div class="row between" style="margin-top:12px"><strong>Amount</strong><strong>${fmt.format(total/100)}</strong></div>
+        <div class="row" style="justify-content:flex-end;margin-top:16px">
+          <button class="btn" onclick="go('/billing')">Back</button>
+          <button class="btn primary" onclick="go('/confirm')">Confirm & Pay</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+  ${Footer()}`;
+}
+
+function finalizeBookingIfNeeded(){
+  if(STATE.booking.__finalized) return;
+  const dep=DB.flightInstances.find(i=>i.id===STATE.booking.departId);
+  const ret=DB.flightInstances.find(i=>i.id===STATE.booking.returnId);
+  if(!dep||!ret) return;
+  const meal=DB.meals.find(m=>m.id===STATE.booking.mealId);
+  const fDep=DB.flights.find(f=>f.id===dep.flightId);
+  const o=DB.airports.find(a=>a.id===fDep.originId), d=DB.airports.find(a=>a.id===fDep.destinationId);
+
+  const trip={
+    id: Date.now(),
+    search: {...STATE.search},
+    route:{from:o,iataFrom:o.iata,to:d,iataTo:d.iata},
+    depart: {id:dep.id, at:dep.departAt, arrive:dep.arriveAt, fare:dep.fareCents},
+    ret:    {id:ret.id, at:ret.departAt, arrive:ret.arriveAt, fare:ret.fareCents},
+    seat: STATE.booking.seat,
+    meal: {id:meal.id, name:meal.name},
+    total: dep.fareCents+ret.fareCents
+  };
+  saveTripForUser(trip);
+  STATE.booking.__finalized = true;
+  save();
+}
+
+const Confirm=(assets)=>{
+  finalizeBookingIfNeeded();
+  const img = planeImageSrc();
+  return `
+${Header(assets)}
+<main class="container" style="padding:34px 0 34px">
+  <section class="confirm-wrap">
+    <div class="sky"></div>
+    <div class="cloud" style="top:14%; left:-12%"></div>
+    <div class="cloud c2"></div>
+    <div class="cloud c3"></div>
+
+    <img class="plane" src="${img}" onerror="this.onerror=null;this.src='./assets/air.webp'" alt="plane">
+
+    <div class="confirm-card">
+      <img src="${assets.logo}" width="160" style="margin-inline:auto" alt="">
+      <h1>FlyDreamAir.</h1>
+      <p>Booking confirmed. Thank you for flying with us.</p>
+      <button class="btn" onclick="restart()">Home →</button>
+    </div>
+  </section>
+</main>
+${Footer()}`;
+};
+
+function Profile(assets){
+  const trips = getTrips();
+  const list = trips.map(t=>{
+    const depTime = tHM(t.depart.at), retTime = tHM(t.ret.at);
+    return `<div class="card" style="padding:14px">
+      <div class="row between" style="align-items:flex-start">
+        <div>
+          <strong>${t.route.from.city} (${t.route.from.iata}) → ${t.route.to.city} (${t.route.to.iata})</strong>
+          <div><small>${t.search.date} • Seat: ${t.seat||'—'} • Meal: ${t.meal?.name||'—'}</small></div>
+          <div><small>Depart: ${depTime} → ${tHM(t.depart.arrive)} • Return: ${retTime} → ${tHM(t.ret.arrive)}</small></div>
+        </div>
+        <strong>${fmt.format(t.total/100)}</strong>
+      </div>
+    </div>`;
+  }).join('');
+
+  const activeBlock = (STATE.booking.departId && STATE.booking.returnId) ? (()=> {
+    const dep=DB.flightInstances.find(i=>i.id===STATE.booking.departId);
+    const ret=DB.flightInstances.find(i=>i.id===STATE.booking.returnId);
+    const fDep=DB.flights.find(f=>f.id===dep.flightId);
+    const o=DB.airports.find(a=>a.id===fDep.originId), d=DB.airports.find(a=>a.id===fDep.destinationId);
+    return `<div class="card" style="padding:14px;margin-top:12px">
+      <strong>Current booking</strong>
+      <div><small>${o.city} (${o.iata}) → ${d.city} (${d.iata}) on ${STATE.search.date}</small></div>
+      <div><small>Depart: ${tHM(dep.departAt)} • Return: ${tHM(ret.departAt)}</small></div>
+      <div><small>Seat: ${STATE.booking.seat||'Not selected'} • Meal: ${DB.meals.find(m=>m.id===STATE.booking.mealId)?.name||'—'}</small></div>
+    </div>`;
+  })() : '<div class="pill" style="margin-top:12px">No active booking</div>';
+
+  return `
+${Header(assets)}
+<main class="container" style="padding:30px 0 34px">
+  <div class="card" style="padding:22px;max-width:960px">
+    <div class="row" style="align-items:center">
+      <img src="${(STATE.user?.avatar)||assets.avatar}" width="80" height="80" class="avatar" alt="">
+      <div><strong style="font-size:20px">${STATE.user?.firstName||'Guest'} ${STATE.user?.lastName||''}</strong>
+        <div><small>${STATE.user?.email||''}</small></div></div>
+    </div>
+
+    ${activeBlock}
+
+    <h3 style="margin:20px 0 8px">Trip history</h3>
+    ${trips.length ? list : '<div class="pill">No previous trips yet</div>'}
+
+    <div class="row" style="margin-top:16px"><button class="btn" onclick="logout()">Sign out</button></div>
+  </div>
+</main>
+${Footer()}`;
+}
+
+const Contact=(assets)=>`
+${Header(assets,'contact')}
+<main class="container" style="padding:30px 0 34px">
+  <div class="banner"><img src="${assets.contactBanner}" alt=""><div style="position:absolute;left:28px;bottom:26px;color:#fff;text-shadow:0 3px 12px rgba(0,0,0,.28)"><h1 style="font-size:48px">Contact Us</h1><p>We’ll respond as soon as possible.</p></div></div>
+  <form class="card" style="padding:20px;margin-top:20px" onsubmit="sendMsg(event)">
+    <div class="formgrid">
+      <div><label>First Name *</label><input id="cFirst" required></div>
+      <div><label>Last Name *</label><input id="cLast" required></div>
+      <div><label>Email *</label><input id="cEmail" type="email" required></div>
+      <div><label>Phone *</label><input id="cPhone" required></div>
+    </div>
+    <div style="margin-top:14px"><label>Message</label><textarea id="cMsg" rows="6" style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:14px"></textarea></div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary">SEND</button></div>
+  </form>
+</main>
+${Footer()}`;
+
+async function createAccount(){
+  const {assets}=await ensureDB();
+  const name=$('#caName')?.value?.trim(), email=$('#caEmail')?.value?.trim(), pass=$('#caPass')?.value?.trim();
+  if(!name||!email||!pass||pass.length<6){ alert('Fill all fields (password ≥ 6)'); return; }
+  const [firstName,...rest]=name.split(' '), lastName=rest.join(' ');
+  const newUser={ id: Date.now(), email, password: pass, firstName: firstName||'', lastName: lastName||'', avatar: assets.avatar || './assets/user.jpg' };
+  const locals = getLocalUsers();
+  if (allUsers(await ensureDB()).some(u=>u.email===email)) { alert('An account with this email already exists.'); return; }
+  locals.push(newUser); setLocalUsers(locals);
+  STATE.user=null; save();
+  localStorage.setItem('fda_last_login', JSON.stringify({email,pass}));
+  alert('Account created (demo). Please sign in.');
+  go('/auth');
+}
+async function login(){
+  const db=await ensureDB();
+  const e=$('#lgEmail')?.value?.trim(), p=$('#lgPass')?.value?.trim();
+  const u=allUsers(db).find(x=>x.email===e && x.password===p);
+  if(!u){ alert('Try demo@flydreamair.com / demo123 — or create an account.'); return; }
+  STATE.user=u;
+  STATE.passenger = getSavedPassenger() || STATE.passenger;
+  save();
+  if($('#rememberCb')?.checked){ localStorage.setItem('fda_last_login', JSON.stringify({email:e,pass:p})); }
+  go('/home');
+}
+function logout(){ STATE.user=null; save(); go('/auth'); }
+function startSearch(){
+  STATE.search={from:$('#fromSel').value,to:$('#toSel').value,date:$('#dateSel').value||'2025-10-25'};
+  if(STATE.search.from===STATE.search.to){ alert('Please choose different cities'); return; }
+  STATE.booking={departId:null,returnId:null,seat:null,mealId:null,totalCents:0,__finalized:false};
+  STATE.passenger = getSavedPassenger() || null;
+  save(); go('/bookings/depart');
+}
+function chooseFlight(kind,id){ if(kind==='depart'){ STATE.booking.departId=id; save(); go('/bookings/return'); } else { STATE.booking.returnId=id; save(); go('/seats'); } }
+function setSeat(id){ LAST_SELECTED_SEAT_ID = id; STATE.booking.seat=id; save(); render(); }
+function setMeal(id){ STATE.booking.mealId=id; save(); render(); }
+function pay(useSaved=false){
+  if(!useSaved){
+    if(!$('#ccNum').value||!$('#ccName').value||!$('#ccMM').value||!$('#ccYY').value||!$('#ccCVV').value){ alert('Enter card details'); return; }
+    if($('#rememberCard')?.checked){
+      saveCardForUser({num:$('#ccNum').value,name:$('#ccName').value,mm:$('#ccMM').value,yy:$('#ccYY').value});
+    }
+  }
+  go('/review');
+}
+function restart(){
+  const currentUser = STATE.user;
+  STATE = structuredClone(initial);
+  STATE.user = currentUser;
+  STATE.passenger = getSavedPassenger() || null;
+  save(); go('/home');
+}
+function sendMsg(e){ e.preventDefault(); alert('Thanks! We’ll be in touch.'); go('/home'); }
+
+function railGoto(step){
+  if(step==='book'){ go('/home'); return; }
+  if(step==='user'){ go('/profile'); return; }
+  const hasDepart=!!STATE.booking.departId;
+  const hasReturn=!!STATE.booking.returnId;
+  const hasSeat=!!STATE.booking.seat;
+
+  if(step==='passenger'){ go('/profile'); return; }
+  if(step==='details'){
+    if(hasSeat){ go('/meals'); }
+    else if(hasDepart && hasReturn){ go('/seats'); }
+    else if(hasDepart){ go('/bookings/return'); }
+    else{ go('/bookings/depart'); }
+  }
+}
+
+async function globalSearch(){
+  if(!DB) await ensureDB();
+  const q=($('#globalSearch')?.value||'').trim().toLowerCase();
+  if(!q) return;
+  const navMap={
+    home:'/home', bookings:'/bookings/depart', depart:'/bookings/depart', return:'/bookings/return',
+    billing:'/details', contact:'/contact', profile:'/profile', seats:'/seats', meals:'/meals',
+    'flight details':'/bookings/depart', 'passenger detail':'/profile'
+  };
+  for(const key in navMap){ if(q===key){ go(navMap[key]); return; } }
+
+  const tokens=q.replace(/from\s+/,'').split(/\s+to\s+/);
+  if(tokens.length>=2){
+    const fromTok=tokens[0].trim().toUpperCase();
+    const rest=tokens[1].trim();
+    const dateMatch=rest.match(/\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}/);
+    const toTok=(dateMatch?rest.replace(dateMatch[0],''):rest).trim().toUpperCase();
+    const toISO = dateMatch ? (dateMatch[0].includes('/') ? dateMatch[0].split('/').reverse().join('-') : dateMatch[0]) : STATE.search.date;
+
+    const findIata=(s)=>DB.airports.find(a=>a.iata===s || a.city.toLowerCase()===s.toLowerCase())?.iata;
+    const f=findIata(fromTok), t=findIata(toTok);
+    if(f&&t&&f!==t){
+      STATE.search={from:f,to:t,date:toISO}; STATE.booking={departId:null,returnId:null,seat:null,mealId:null,totalCents:0,__finalized:false}; STATE.passenger=getSavedPassenger()||null; save();
+      go('/bookings/depart'); return;
+    }
+  }
+
+  const maybe=DB?.airports?.find(a=>a.iata.toLowerCase()===q||a.city.toLowerCase()===q);
+  if(maybe){
+    STATE.search.to=maybe.iata; STATE.passenger=getSavedPassenger()||null; save(); go('/bookings/depart'); return;
+  }
+  go('/bookings/depart');
+}
+
+route('/auth', async()=> Auth((await ensureDB()).assets));
+route('/create', async()=> Create((await ensureDB()).assets));
+route('/forgot', async()=> Forgot((await ensureDB()).assets));
+route('/home', async()=> { const db=await ensureDB(); return Home(db.assets, db.airports); });
+route('/bookings/depart', async()=> { const db=await ensureDB(); return Bookings(db.assets,'depart'); });
+route('/bookings/return', async()=> { const db=await ensureDB(); return Bookings(db.assets,'return'); });
+route('/seats', async()=> Seats((await ensureDB()).assets));
+route('/meals', async()=> Meals((await ensureDB()).assets));
+route('/details', async()=> Details((await ensureDB()).assets));
+route('/billing', async()=> Billing((await ensureDB()).assets));
+route('/review', async()=> Review((await ensureDB()).assets));
+route('/confirm', async()=> Confirm((await ensureDB()).assets));
+route('/profile', async()=> Profile((await ensureDB()).assets));
+route('/contact', async()=> Contact((await ensureDB()).assets));
+
+async function render(){
+  const p=location.hash.replace('#','')||'/auth';
+  const fn=routes[p]||routes['/auth'];
+  $('#app').innerHTML=await fn();
+  postRenderFX();
+}
+render();
+ensureDB().then(({assets})=>{
+  if(STATE.user){
+    if(!STATE.passenger){ STATE.passenger = getSavedPassenger() || null; save(); }
+    if(!location.hash || location.hash==='#/auth') go('/home');
+  }
+});
+
+function postRenderFX(){
+  if(location.hash==='#/seats' && LAST_SELECTED_SEAT_ID){
+    const el = document.querySelector(`.seatcell.selected[data-id="${CSS.escape(LAST_SELECTED_SEAT_ID)}"]`);
+    if(el){
+      el.classList.add('seat-bounce');
+      el.addEventListener('animationend', ()=> el.classList.remove('seat-bounce'), {once:true});
+    }
+  }
+}
+</script>
+
+<script>
+(function(){
+  function attach(){
+    const hero = document.querySelector('.heroPlaneWrap');
+    const plane = hero?.querySelector('.hero_img');
+    if(!hero || !plane) return;
+    let raf = null;
+    const lerp = (a,b,t)=>a+(b-a)*t;
+    let tx=0, ty=0, rx=0;
+    function onMove(e){
+      const rect = hero.getBoundingClientRect();
+      const cx = rect.left + rect.width/2;
+      const cy = rect.top  + rect.height/2;
+      const dx = (e.clientX - cx) / rect.width;
+      const dy = (e.clientY - cy) / rect.height;
+      tx = dx * 14; ty = dy * 10; rx = dx * 2.8;
+      if(!raf) raf = requestAnimationFrame(tick);
+    }
+    function tick(){
+      raf = null;
+      const m = plane.__m || {x:0,y:0,r:0};
+      m.x = lerp(m.x, tx, .08);
+      m.y = lerp(m.y, ty, .08);
+      m.r = lerp(m.r, rx, .08);
+      plane.style.transform = `translate3d(${m.x*0.8}px, ${m.y*0.8}px, 0) rotate(${m.r-2.2}deg)`;
+      plane.__m = m;
+    }
+    hero.addEventListener('mousemove', onMove, {passive:true});
+  }
+  const mo = new MutationObserver(()=>attach());
+  mo.observe(document.getElementById('app'), {childList:true, subtree:true});
+  attach();
+})();
+
+(function(){
+  const overlay = document.getElementById('skyTransition');
+  function runTransition(){
+    if(!overlay) return;
+    overlay.classList.remove('run'); void overlay.offsetWidth; overlay.classList.add('run');
+  }
+  window.addEventListener('hashchange', runTransition);
+})();
+
+(function(){
+  const c = document.getElementById('contrail');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  let points = [];
+  let raf = null;
+  let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize(){
+    const {innerWidth:w, innerHeight:h} = window;
+    c.width = Math.floor(w * dpr);
+    c.height = Math.floor(h * dpr);
+    c.style.width = w + 'px';
+    c.style.height = h + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function onMove(e){
+    points.push({x:e.clientX, y:e.clientY, t:performance.now()});
+    if(points.length>24) points.shift();
+    if(!raf) raf = requestAnimationFrame(draw);
+  }
+  window.addEventListener('mousemove', onMove, {passive:true});
+
+  function draw(){
+    raf = null;
+    const now = performance.now();
+    ctx.clearRect(0,0,c.width/dpr,c.height/dpr);
+    for(let i=1;i<points.length;i++){
+      const a = points[i-1], b = points[i];
+      const age = (now - b.t) / 600;
+      if(age>1) continue;
+      const alpha = (1-age) * .45;
+      ctx.strokeStyle = `rgba(27,116,228,${alpha})`;
+      ctx.lineWidth = 3.5 * (1 - i/points.length);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.lineTo(b.x,b.y);
+      ctx.stroke();
+    }
+    if(points.length && (now - points.at(-1).t) < 600){
+      raf = requestAnimationFrame(draw);
+    }
+  }
+})();
+
+(function(){
+  document.addEventListener('click', (e)=>{
+    const card = e.target.closest('.meal');
+    if(!card) return;
+    const r = card.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    const s = document.createElement('span');
+    s.className = 'ripple';
+    s.style.left = x + 'px';
+    s.style.top  = y + 'px';
+    card.appendChild(s);
+    s.addEventListener('animationend', ()=> s.remove(), {once:true});
+  }, {passive:true});
+})();
+</script>
+</body>
+</html>
