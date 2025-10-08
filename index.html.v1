@@ -1,0 +1,512 @@
+<!--
+Home “Plan Your Trip” pill is translucent, text hard to read on bright hero.
+
+Auth hero airplane doesn’t fill the blue box.
+
+Meals cards clip the round plate images.
+
+Page transition is slow.
+
+chooseFlight() always writes to departId (return never selected properly).
+
+seatClick() allows selecting busy seats.
+
+setMeal() silently fails to save the meal (no selection persists).
+
+startSearch() allows same From/To and proceeds.
+
+pay() ignores validation and “remember card” logic (nothing saved).
+
+Checkbox and label spacing not tightened.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FlyDreamAir • Prototype v1 (needs work)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f9fc;--page:#fff;--fg:#0f172a;--muted:#6b7280;--primary:#1b74e4;--accent:#0ea5e9;--border:#e6eaf0;--ink:#fff;--shadow:0 22px 60px rgba(15,23,42,.12)}
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;overflow-x:hidden}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%}button,input,select,textarea{font:inherit;color:inherit}
+.container{max-width:100%;margin-inline:auto;padding-inline:32px}.row{display:flex;gap:18px}.between{justify-content:space-between;align-items:center}
+.stack>*+*{margin-top:16px}.card{background:#fff;border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border:1px solid var(--border);border-radius:14px;background:#fff;cursor:pointer}
+.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}input,select,textarea{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:14px;background:#fff}
+label{font-size:12px;color:#7a8390;display:block;margin-bottom:6px}h1{font-size:44px;margin:0}h2{font-size:30px;margin:0}h3{font-size:20px;margin:0}
+footer{border-top:1px solid var(--border);padding-block:22px;background:#fff}.pill{padding:10px 14px;border:1px solid var(--border);border-radius:999px;background:#fff}
+
+/* ===== Auth layout (BUG: plane doesn't fill) ===== */
+.auth-shell{min-height:100svh;display:grid;grid-template-columns:1fr 1fr;gap:0;padding:28px 24px 44px;background:radial-gradient(1100px 700px at 70% -8%, rgba(14,165,233,.16), transparent 55%),linear-gradient(180deg,#eef7ff 0%,#f7fbff 45%, #f6f9fc 100%);position:relative}
+.auth-shell::before{content:"";position:absolute;inset:76px 18px 28px;background:#fff;border-radius:34px;border:1px solid rgba(14,21,48,.06);box-shadow:0 36px 120px rgba(2,6,23,.16),0 8px 26px rgba(2,6,23,.06)}
+.auth-left,.auth-right{position:relative;z-index:1;display:flex;flex-direction:column}.auth-left{padding:22px 12px 22px 22px}.auth-right{padding:22px 22px 22px 12px}
+.brandRow{height:64px;display:flex;align-items:center;gap:12px;margin:0 8px 10px}.brandRow strong{font-size:46px;color:#1b74e4}
+.heroPlaneWrap{flex:1;position:relative;margin:0 8px;height:84svh;min-height:560px;border-radius:36px;overflow:hidden;background:linear-gradient(180deg,#cfeeff,#a3dcff);box-shadow:0 24px 80px rgba(2,6,23,.18),0 10px 24px rgba(2,6,23,.08)}
+/* BUG: object-fit wrong */
+.heroPlaneWrap .hero_img{position:absolute;inset:0;width:auto;height:auto;object-fit:contain}
+.auth-card{flex:1;border-radius:0 28px 28px 0;border:1px solid rgba(14,21,48,.06);background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.86));backdrop-filter:saturate(160%) blur(10px);padding:28px}
+
+/* ===== App chrome ===== */
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.92);backdrop-filter:saturate(160%) blur(10px);border-bottom:1px solid var(--border)}
+nav{height:84px}.brand{display:flex;gap:12px;align-items:center}.brand strong{font-size:28px;color:#1b74e4}
+.nav{display:flex;gap:42px;align-items:center}.nav a{padding:14px 8px;border-radius:10px}.nav a[aria-current="page"]{box-shadow:inset 0 -2px 0 0 #1b1d24}
+.search-pill{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:999px;padding:12px 16px;background:#fff;min-width:320px}
+.page{margin:20px;border-radius:48px;overflow:hidden;background:#fff}.hero{padding:30px}.banner{position:relative;border-radius:36px;overflow:hidden}
+.banner>img{width:100%;height:520px;object-fit:cover}
+/* BUG: overlay always applied (even on Home) */
+.banner::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg, rgba(3,7,18,.65) 0%, rgba(3,7,18,.35) 28%, rgba(3,7,18,0) 55%)}
+.banner>div{color:#fff;text-shadow:0 8px 26px rgba(2,6,23,.55),0 2px 8px rgba(2,6,23,.35)}
+
+/* Home rail + plan pill (BUG: translucent = poor contrast) */
+.rail-wrap{display:grid;grid-template-columns:112px 1fr;gap:22px;align-items:start}
+.rail{position:sticky;top:96px;background:#f2f5f9;border:1px solid var(--border);border-radius:24px;padding:14px 10px;display:flex;flex-direction:column;gap:18px;text-align:center}
+.rail .item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border-radius:16px;color:#111827;cursor:pointer}
+.rail .item.active{background:#fff;box-shadow:0 6px 18px rgba(2,6,23,.08)}
+.plan-pill{position:absolute;left:28px;right:28px;bottom:28px;background:rgba(255,255,255,.78);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);padding:16px}
+.plan-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end}
+.plan-pill select,.plan-pill input[type="date"]{height:48px;padding:0 14px}
+
+/* Seats / Meals (BUGGY meals) */
+.seatgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:12px}
+.seat{aspect-ratio:1/1;border:1px solid var(--border);border-radius:12px;display:grid;place-items:center;cursor:pointer}
+.seat.busy{background:#eef2f7;color:#9ca3af}
+.seat.selected{background:var(--primary);color:#fff;border-color:var(--primary)}
+main.container[data-page="meals"]{padding-top:38px}
+main.container[data-page="meals"] .meals{max-width:1180px;margin:0 auto 16px;padding-top:120px;display:grid;grid-template-columns:repeat(3,minmax(340px,1fr));gap:64px 52px}
+main.container[data-page="meals"] .meal{position:relative;display:block;background:#fff;border:1px solid var(--border);border-radius:26px;padding:160px 28px 26px;min-height:270px;box-shadow:0 22px 46px rgba(2,6,23,.10);overflow:hidden}
+main.container[data-page="meals"] .meal>img{position:absolute;top:0;left:50%;transform:translate(-50%,-52%);width:220px;height:220px;object-fit:cover;border-radius:999px;background:#fff;box-shadow:0 18px 36px rgba(2,6,23,.18),0 0 0 12px #fff}
+
+/* Flights / details basics */
+.flight{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);border-radius:20px;background:#fff;padding:18px 20px;box-shadow:0 14px 30px rgba(2,6,23,.10)}
+.stepper{display:flex;gap:18px;align-items:center;justify-content:center;margin:18px 0 20px}
+.step .dot{width:28px;height:28px;border:1px solid var(--border);border-radius:999px;display:grid;place-items:center}
+.step.active .dot{background:var(--primary);color:#fff;border-color:var(--primary)}
+.step.done .dot{background:#0ea5e9;color:#023;border-color:#0ea5e9}
+
+/* Transition (BUG: too slow) */
+#skyTransition{position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:0;display:grid;place-items:center}
+#skyTransition .layer{position:absolute;inset:-10% -10% -10% -10%;background:linear-gradient(180deg,#bfe5ff 0%, #e6f4ff 60%, #ffffff 100%);transform:translateX(-110vw)}
+#skyTransition .plane{width:120px;transform:translate(-60vw,-2vh) rotate(8deg)}
+#skyTransition.run{opacity:1;animation:fadeOut 1s ease forwards}
+#skyTransition.run .layer{animation:cloudWipe 1s ease forwards}
+#skyTransition.run .plane{animation:planeSwipe 1s ease forwards}
+@keyframes cloudWipe{0%{transform:translateX(-110vw)}55%{transform:translateX(0)}100%{transform:translateX(110vw)}}
+@keyframes planeSwipe{0%{transform:translate(-60vw,-2vh) rotate(8deg)}55%{transform:translate(0,-4vh) rotate(0)}100%{transform:translate(60vw,-2vh) rotate(4deg)}}
+@keyframes fadeOut{0%,70%{opacity:1}100%{opacity:0}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- Transition overlay -->
+<div id="skyTransition" aria-hidden="true">
+  <div class="layer"></div>
+  <svg class="plane" viewBox="0 0 256 256" fill="currentColor" style="color:#1b74e4" aria-hidden="true">
+    <path d="M236 120c4 2 4 14 0 16l-72 16-52 52c-3 3-8 3-11 0l-13-13 34-44-58 14-21 20-21-21 20-21 14-58-44 34-13-13c-3-3-3-8 0-11l52-52 16-72c2-4 14-4 16 0l28 96 105 38z"/>
+  </svg>
+</div>
+
+<script>
+/* ===== SPA core ===== */
+const $=(s,r=document)=>r.querySelector(s);
+const fmt=new Intl.NumberFormat(undefined,{style:'currency',currency:'USD'});
+const LS='fda_state_v6',USERS_LS='fda_users_v1',CARDS_LS='fda_cards_v1',PASSENGER_LS='fda_passenger_v1',TRIPS_LS='fda_trips_v1';
+
+const initial={user:null,search:{from:'SYD',to:'BNE',date:'2025-10-25'},booking:{departId:null,returnId:null,seat:null,mealId:null,totalCents:0,__finalized:false},passenger:null};
+let STATE=JSON.parse(localStorage.getItem(LS)||'null')||structuredClone(initial);
+const save=()=>localStorage.setItem(LS,JSON.stringify(STATE));
+const routes={};const route=(p,f)=>routes[p]=f;const go=(p)=>location.hash=p;window.addEventListener('hashchange',render);
+
+let DB=null;
+async function ensureDB(){
+  if(DB) return DB;
+  const res=await fetch('./db.json',{cache:'no-store'});
+  if(!res.ok) throw new Error('Place db.json next to index.html');
+  DB=await res.json(); DB.airports.sort((a,b)=>a.city.localeCompare(b.city)); return DB;
+}
+const tHM=(iso)=>new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+const dur=(a,b)=>{const ms=(new Date(b)-new Date(a)),h=Math.floor(ms/36e5),m=Math.round((ms%36e5)/6e4);return `${h}H, ${m}M`;};
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function minutesAdd(iso,mins){return new Date(new Date(iso).getTime()+mins*60000).toISOString();}
+function iataToId(i){return DB.airports.find(a=>a.iata===i)?.id;}
+function ensureFlight(fromI,toI){const o=iataToId(fromI),d=iataToId(toI);let f=DB.flights.find(x=>x.originId===o&&x.destinationId===d);if(!f){f={id:Date.now()+Math.random(),number:`FD${rand(100,999)}`,originId:o,destinationId:d};DB.flights.push(f);}return f;}
+function ensureRouteInstances(from,to,yyyy_mm_dd){
+  const f=ensureFlight(from,to);
+  const exists=DB.flightInstances.some(x=>x.flightId===f.id&&new Date(x.departAt).toISOString().slice(0,10)===yyyy_mm_dd);
+  if(exists) return;
+  const base=new Date(yyyy_mm_dd+'T00:00:00');
+  [8*60+15,15*60+20,20*60+15].forEach((mins,i)=>{
+    const departAt=new Date(base.getTime()+mins*60000).toISOString();
+    const durationMin=rand(120,200);
+    const arriveAt=minutesAdd(departAt,durationMin);
+    const fare=rand(95,185)*100;
+    DB.flightInstances.push({id:Date.now()+i+Math.random(),flightId:f.id,departAt,arriveAt,fareCents:fare});
+  });
+}
+
+/* header/footer */
+const Header=(assets,active='')=>`
+<header>
+  <nav class="container row between">
+    <div class="brand">
+      <img src="\${assets.logo}" width="40" height="40" style="border-radius:10px" alt="">
+      <a href="#/home"><strong>FlyDreamAir.</strong></a>
+    </div>
+    <div class="nav">
+      <a href="#/home" \${active==='home'?'aria-current="page"':''}>Home</a>
+      <a href="#/bookings/depart" \${active==='bookings'?'aria-current="page"':''}>Bookings</a>
+      <a href="#/details" \${active==='billing'?'aria-current="page"':''}>Billing</a>
+      <a href="#/contact" \${active==='contact'?'aria-current="page"':''}>Contact Us</a>
+    </div>
+    <div class="row" style="align-items:center">
+      <div class="search-pill"><span></span>
+        <input id="globalSearch" placeholder="Search" style="border:none;outline:none;background:transparent;width:100%" onkeydown="if(event.key==='Enter') globalSearch()">
+      </div>
+      <a href="#/profile"><img class="avatar" src="\${(STATE.user?.avatar)|| (DB?.assets?.avatar || './assets/user.jpg')}" width="40" height="40" alt=""></a>
+    </div>
+  </nav>
+</header>`;
+const Footer=()=>`<footer><div class="container row between"><small>© 2025 FlyDreamAir</small><small>Prototype build</small></div></footer>`;
+function SideRail(assets, active){
+  const item=(k,icon,label,route)=>`<div class="item \${active===k?'active':''}" onclick="\${route}"><div style="font-size:20px">\${icon}</div><div style="line-height:1.05">\${label.replace(' ','<br>')}</div></div>`;
+  return `<aside class="rail">
+    \${item('book','','Book Tickets',"railGoto('book')")}
+    \${item('passenger','','Passenger Detail',"railGoto('passenger')")}
+    \${item('details','','Flight Details',"railGoto('details')")}
+    <div class="item \${active==='user'?'active':''}" onclick="railGoto('user')">
+      <img class="avatar" src="\${(STATE.user?.avatar)||assets.avatar}" alt=""><div style="line-height:1.05">User<br>Name</div>
+    </div>
+  </aside>`;
+}
+
+/* ===== AUTH / CREATE ===== */
+function planeImageSrc(){return './assets/air.png';}
+function Auth(assets){
+  const remembered=JSON.parse(localStorage.getItem('fda_last_login')||'{}'), img=planeImageSrc();
+  return `<div class="auth-shell">
+    <section class="auth-left">
+      <div class="brandRow"><img src="\${assets.logo}" width="56" height="56" alt=""><strong>FlyDreamAir.</strong></div>
+      <div class="heroPlaneWrap"><img class="hero_img" src="\${img}" onerror="this.onerror=null;this.src='./assets/main.jpg'" alt=""></div>
+    </section>
+    <section class="auth-right">
+      <div class="auth-card">
+        <div class="row between"><h2 style="margin:0">Sign In</h2><div>Don’t have an account? <a href="#/create">Create one</a></div></div>
+        <div class="stack">
+          <div><label>Email Address</label><input id="lgEmail" type="email" placeholder="you@example.com" value="\${remembered.email||''}"></div>
+          <div><label>Password</label><input id="lgPass" type="password" placeholder="••••••••" value="\${remembered.pass||''}"></div>
+          <div class="row between" style="align-items:center">
+            <div class="row" style="gap:8px;align-items:center"><input id="rememberCb" type="checkbox" \${remembered.email?'checked':''}><small>Remember me</small></div>
+            <small><a href="#/forgot">Forgot password?</a></small>
+          </div>
+          <div class="row" style="justify-content:center"><button class="btn primary" onclick="login()">Sign in</button></div>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+function Create(assets){
+  const img=planeImageSrc();
+  return `<div class="auth-shell">
+    <section class="auth-left">
+      <div class="brandRow"><img src="\${assets.logo}" width="56" height="56" alt=""><strong>FlyDreamAir.</strong></div>
+      <div class="heroPlaneWrap"><img class="hero_img" src="\${img}" onerror="this.onerror=null;this.src='./assets/main.jpg'" alt=""></div>
+    </section>
+    <section class="auth-right">
+      <div class="auth-card">
+        <div class="row between"><h2 style="margin:0">Create Account</h2><div>Already have an account? <a href="#/auth">Log in</a></div></div>
+        <div class="stack">
+          <div><label>Full Name</label><input id="caName" placeholder="Jane Doe"></div>
+          <div><label>Email Address</label><input id="caEmail" type="email" placeholder="you@example.com"></div>
+          <div><label>Password</label><input id="caPass" type="password" placeholder="Min 6 chars"></div>
+          <div class="row" style="justify-content:center"><button class="btn primary" onclick="createAccount()">Create Account</button></div>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+
+/* ===== Pages ===== */
+function Home(assets,airports){
+  return `${Header(assets,'home')}
+<main class="container hero">
+  <div class="rail-wrap">
+    ${SideRail(assets,'book')}
+    <section>
+      <div class="banner">
+        <img src="${assets.heroPlane}" alt="Plane banner">
+        <div class="plan-pill">
+          <div style="font-weight:600;margin-bottom:6px">Plan Your Trip</div>
+          <div class="plan-grid">
+            <div><label>From</label>
+              <select id="fromSel">${airports.map(a=>`<option value="${a.iata}" ${STATE.search.from===a.iata?'selected':''}>${a.city} (${a.iata})</option>`).join('')}</select>
+            </div>
+            <div><label>To</label>
+              <select id="toSel">${airports.map(a=>`<option value="${a.iata}" ${STATE.search.to===a.iata?'selected':''}>${a.city} (${a.iata})</option>`).join('')}</select>
+            </div>
+            <div><label>On</label><input id="dateSel" type="date" value="${STATE.search.date}"></div>
+            <div><button class="btn primary" onclick="startSearch()">Search</button></div>
+          </div>
+        </div>
+      </div>
+      <section class="stack" style="margin-top:28px">
+        <h2>About us</h2>
+        <p style="max-width:900px">FlyDreamAir is a boutique international airline that turns travel into a story.</p>
+      </section>
+    </section>
+  </div>
+</main>
+${Footer()}`;
+}
+
+function Bookings(assets,kind){
+  const forward=kind==='depart';
+  const from=forward?STATE.search.from:STATE.search.to;
+  const to  =forward?STATE.search.to  :STATE.search.from;
+  const date=STATE.search.date;
+  ensureRouteInstances(from,to,date);
+  const list=DB.flightInstances.filter(x=>{
+    const f=DB.flights.find(ff=>ff.id===x.flightId);
+    const o=DB.airports.find(a=>a.id===f.originId).iata;
+    const d=DB.airports.find(a=>a.id===f.destinationId).iata;
+    return o===from && d===to && new Date(x.departAt).toISOString().slice(0,10)===date;
+  }).sort((a,b)=>a.departAt.localeCompare(b.departAt));
+  const selected=forward?STATE.booking.departId:STATE.booking.returnId;
+  const title=forward?'Departing flight':'Return flight';
+
+  return `
+  ${Header(assets,'bookings')}
+  <main class="container" style="padding:28px 0 32px">
+    <div class="rail-wrap">
+      ${SideRail(assets,'book')}
+      <section>
+        <div class="banner" style="margin-bottom:18px"><img src="${assets.heroPlane}" alt=""></div>
+        <h1 style="text-align:center;margin:12px 0 26px">${title}</h1>
+        <div class="stack">
+          ${list.map(x=>{
+            const f=DB.flights.find(ff=>ff.id===x.flightId);
+            const o=DB.airports.find(a=>a.id===f.originId), d=DB.airports.find(a=>a.id===f.destinationId);
+            const sel=selected===x.id;
+            return `<article class="flight">
+              <div class="meta">
+                <div><small>Depart</small><div style="font-weight:800;font-size:22px">${tHM(x.departAt)}</div><small>${o.city}</small></div>
+                <div class="pill">${dur(x.departAt,x.arriveAt)}</div>
+                <div><small>Arrive</small><div style="font-weight:800;font-size:22px">${tHM(x.arriveAt)}</div><small>${d.city}</small></div>
+              </div>
+              <div class="row" style="align-items:center;gap:16px">
+                <strong style="font-size:22px;color:#1b1464">${fmt.format(x.fareCents/100)}</strong>
+                <button class="btn primary" onclick="chooseFlight('${kind}',${x.id})">${sel?'Selected':'Choose'}</button>
+              </div>
+            </article>`;
+          }).join('')}
+        </div>
+      </section>
+    </div>
+  </main>
+  ${Footer()}`;
+}
+
+/* ===== Seats ===== */
+function ensureSeatMap(instanceId, rows=['A','B','C','D','E','F','G','H'], cols=[1,2,3,4,5,6,7]){
+  if(!DB.seats) DB.seats=[]; let rec=DB.seats.find(s=>s.instanceId===instanceId);
+  if(rec) return rec;
+  const all=[]; for(const r of rows){for(const c of cols){all.push(`${r}${c}`)}}
+  const taken=all.filter(()=>Math.random()<0.22); rec={instanceId,taken}; DB.seats.push(rec); return rec;
+}
+function Seats(assets){
+  const dep=DB.flightInstances.find(i=>i.id===STATE.booking.departId);
+  const ret=DB.flightInstances.find(i=>i.id===STATE.booking.returnId);
+  if(!dep||!ret){ go('/bookings/depart'); return ''; }
+  const fDep=DB.flights.find(f=>f.id===dep.flightId);
+  const o=DB.airports.find(a=>a.id===fDep.originId), d=DB.airports.find(a=>a.id===fDep.destinationId);
+  const rows=['A','B','C','D','E','F','G','H'], cols=[1,2,3,4,5,6,7];
+  const seatRec=ensureSeatMap(dep.id,rows,cols); const taken=new Set(seatRec.taken);
+
+  const rowNums=[1,2,3].map(n=>`<div class="sb-num">${n}</div>`).join('');
+  const rowNumsR=[4,5,6,7].map(n=>`<div class="sb-num">${n}</div>`).join('');
+  const numsRow=`${rowNums}<div class="sb-aisle"></div>${rowNumsR}<div></div>`;
+
+  const gridRows=rows.map(letter=>{
+    const mk=(n)=>{const id=`${letter}${n}`, busy=taken.has(id), sel=STATE.booking.seat===id;
+      return `<div class="seatcell${busy?' busy':''}${sel?' selected':''}" data-id="${id}" onclick="seatClick(event)"></div>`};
+    return [1,2,3].map(mk).join('')+`<div class="sb-aisle"></div>`+[4,5,6,7].map(mk).join('');
+  }).join('');
+
+  return `${Header(assets,'bookings')}
+  <main class="container" style="padding:28px 0 32px">
+    <section class="card" style="padding:18px">
+      <div class="seatboard" style="display:grid;grid-template-columns:repeat(3,48px) 56px repeat(4,48px) 40px;grid-auto-rows:48px;gap:12px 16px;justify-content:center">
+        ${numsRow}
+        ${gridRows}
+        <div class="legend" style="grid-row:2 / span 8; grid-column:9; display:flex; flex-direction:column; gap:22px; align-items:center; justify-content:center">
+          <div class="vlabel" style="writing-mode:vertical-rl; transform:rotate(180deg); color:#0b73d8; font-size:14px; font-weight:600">Available</div>
+          <div class="dot" style="width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:#e9eef6"></div>
+          <div class="vlabel" style="writing-mode:vertical-rl; transform:rotate(180deg); color:#0b73d8; font-size:14px; font-weight:600">Booked</div>
+          <div class="dot" style="width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:#2b2f38;border-color:#2b2f38"></div>
+        </div>
+      </div>
+      <div class="row" style="justify-content:flex-end;margin-top:16px">
+        <button class="btn" onclick="go('/bookings/return')">Back</button>
+        <button class="btn primary" onclick="go('/meals')" ${STATE.booking.seat?'':'disabled'}>Continue</button>
+      </div>
+    </section>
+  </main>
+  ${Footer()}`;
+}
+
+/* ===== Meals ===== */
+function Meals(assets){
+  const cards=DB.meals.map(m=>{
+    const checked=STATE.booking.mealId===m.id;
+    return `<label class="meal" role="radio" aria-checked="${checked}" onclick="setMeal(${m.id})">
+      <img src="${m.image}" alt="${m.subtitle||''}" />
+      <strong>${m.name}</strong><small>${m.subtitle||''}</small></label>`;
+  }).join('');
+  return Header(assets,'bookings')+`<main class="container" data-page="meals">
+    <h2>Meals</h2>
+    <section class="meals" role="radiogroup" aria-label="Meal selection">${cards}</section>
+    <div class="row"><button class="btn primary" onclick="go('/details')" ${STATE.booking.mealId?'':'disabled'}>Continue</button></div>
+  </main>`+Footer();
+}
+
+/* ===== Details ===== */
+function Details(assets){
+  const seed=STATE.passenger||{firstName:'',lastName:'',phoneCode:'+61',phone:'',email:STATE.user?.email||'',street:'',apt:'',state:'',zip:''};
+  return `${Header(assets,'billing')}
+  <main class="container">
+    <div class="stepper"><div class="step done"><div class="dot">✓</div><small>Cart</small></div><div class="step active"><div class="dot">2</div><small>Details</small></div><div class="step"><div class="dot">3</div><small>Payment</small></div><div class="step"><div class="dot">4</div><small>Confirm</small></div></div>
+    <section class="card" style="padding:22px;max-width:960px;margin-inline:auto">
+      <div class="row" style="gap:12px">
+        <div style="flex:1"><label>First Name</label><input id="detFirst" value="${seed.firstName}"></div>
+        <div style="flex:1"><label>Last Name</label><input id="detLast" value="${seed.lastName}"></div>
+      </div>
+      <div class="row" style="gap:12px;margin-top:14px">
+        <div style="flex:0 0 120px"><label>Code</label><select id="detCode">${['+61','+1','+44','+65','+81'].map(c=>`<option ${seed.phoneCode===c?'selected':''}>${c}</option>`).join('')}</select></div>
+        <div style="flex:1"><label>Phone Number</label><input id="detPhone" value="${seed.phone}"></div>
+      </div>
+      <div style="margin-top:14px"><label>Email</label><input id="detEmail" value="${seed.email}"></div>
+      <div class="row" style="gap:12px;margin-top:14px">
+        <div style="flex:1"><label>Street</label><input id="detStreet" value="${seed.street}"></div>
+        <div style="flex:1"><label>Apt</label><input id="detApt" value="${seed.apt}"></div>
+      </div>
+      <div class="row" style="gap:12px;margin-top:14px">
+        <div style="flex:1"><label>State</label><input id="detState" value="${seed.state}"></div>
+        <div style="flex:1"><label>Zip</label><input id="detZip" value="${seed.zip}"></div>
+      </div>
+      <div class="row" style="margin-top:14px"><button class="btn" onclick="go('/meals')">Cancel</button><button class="btn primary" onclick="saveDetails()">Save</button></div>
+    </section>
+  </main>${Footer()}`;
+}
+
+/* ===== Billing / Review / Confirm minimal (kept) ===== */
+function Billing(assets){
+  const dep=DB.flightInstances.find(i=>i.id===STATE.booking.departId);
+  const ret=DB.flightInstances.find(i=>i.id===STATE.booking.returnId);
+  if(!dep||!ret){ go('/bookings/depart'); return ''; }
+  const total=dep.fareCents+ret.fareCents; STATE.booking.totalCents=total; save();
+  return `${Header(assets,'billing')}
+  <main class="container" style="padding:28px 0 32px">
+    <div class="stepper"><div class="step done"><div class="dot">✓</div><small>Cart</small></div><div class="step done"><div class="dot">✓</div><small>Details</small></div><div class="step active"><div class="dot">3</div><small>Payment</small></div><div class="step"><div class="dot">4</div><small>Confirm</small></div></div>
+    <div class="row" style="gap:22px;align-items:flex-start">
+      <section class="card" style="flex:1;padding:20px">
+        <h3>Add new card</h3>
+        <div class="stack" style="margin-top:12px">
+          <div><label>Card number</label><input id="ccNum" placeholder="1234 5678 9012 3456"></div>
+          <div><label>Card owner</label><input id="ccName" placeholder="Name on card"></div>
+          <div class="row"><div style="flex:0 0 98px"><label>MM</label><input id="ccMM" maxlength="2" placeholder="12"></div><div style="flex:0 0 98px"><label>YY</label><input id="ccYY" maxlength="2" placeholder="27"></div><div style="flex:0 0 120px"><label>CVV</label><input id="ccCVV" maxlength="4" placeholder="123"></div></div>
+          <label style="display:flex;gap:8px;align-items:center;margin-top:6px"><input type="checkbox" id="rememberCard"> <span>Remember this card for next time</span></label>
+        </div>
+      </section>
+      <aside class="card" style="width:380px;padding:20px">
+        <h3>Order</h3>
+        <div class="stack" style="margin-top:12px">
+          <div class="row between"><small>Depart</small><small>${fmt.format(dep.fareCents/100)}</small></div>
+          <div class="row between"><small>Return</small><small>${fmt.format(ret.fareCents/100)}</small></div>
+          <hr style="border:none;border-top:1px solid var(--border)">
+          <div class="row between"><strong>Total:</strong><strong>${fmt.format(total/100)}</strong></div>
+          <button class="btn primary" onclick="pay()">Review your order</button>
+        </div>
+      </aside>
+    </div>
+  </main>${Footer()}`;
+}
+function Review(assets){
+  const dep=DB.flightInstances.find(i=>i.id===STATE.booking.departId);
+  const ret=DB.flightInstances.find(i=>i.id===STATE.booking.returnId);
+  const total=(dep.fareCents+ret.fareCents);
+  return `${Header(assets,'billing')}
+  <main class="container" style="padding:28px 0 32px">
+    <div class="card" style="padding:20px;max-width:980px;margin-inline:auto">
+      <h3>Review your order</h3>
+      <div class="row between" style="margin-top:12px"><strong>Amount</strong><strong>${fmt.format(total/100)}</strong></div>
+      <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn" onclick="go('/billing')">Back</button><button class="btn primary" onclick="go('/confirm')">Confirm & Pay</button></div>
+    </div>
+  </main>${Footer()}`;
+}
+function Confirm(assets){return `${Header(assets)}
+<main class="container" style="padding:34px 0 34px"><section class="card" style="padding:30px;text-align:center"><h1>FlyDreamAir.</h1><p>Booking confirmed. (Demo)</p><button class="btn" onclick="restart()">Home →</button></section></main>${Footer()}`}
+
+/* ===== mini helpers ===== */
+function allUsers(db){return [...(db?.users||[]), ...(JSON.parse(localStorage.getItem(USERS_LS)||'[]'))];}
+async function createAccount(){
+  const {assets}=await ensureDB(); const name=$('#caName')?.value?.trim(), email=$('#caEmail')?.value?.trim(), pass=$('#caPass')?.value?.trim();
+  if(!name||!email||!pass){alert('Fill all fields');return;}
+  const [firstName,...rest]=name.split(' '), lastName=rest.join(' ');
+  const locals=JSON.parse(localStorage.getItem(USERS_LS)||'[]'); locals.push({id:Date.now(),email,password:pass,firstName,lastName,avatar:assets.avatar||'./assets/user.jpg'}); localStorage.setItem(USERS_LS',JSON.stringify(locals));
+  alert('Account created (demo). Please sign in.'); go('/auth');
+}
+async function login(){
+  const db=await ensureDB(); const e=$('#lgEmail')?.value?.trim(), p=$('#lgPass')?.value?.trim();
+  const u=allUsers(db).find(x=>x.email===e&&x.password===p);
+  if(!u){alert('Try demo@flydreamair.com / demo123');return;}
+  STATE.user=u; save(); if($('#rememberCb')?.checked){localStorage.setItem('fda_last_login',JSON.stringify({email:e,pass:p}))} go('/home');
+}
+function logout(){STATE.user=null;save();go('/auth');}
+
+/* ===== Intentional BUGS below ===== */
+function startSearch(){ // BUG: allows same city
+  STATE.search={from:$('#fromSel').value,to:$('#toSel').value,date:$('#dateSel').value||'2025-10-25'};
+  STATE.booking={departId:null,returnId:null,seat:null,mealId:null,totalCents:0,__finalized:false};
+  save(); go('/bookings/depart');
+}
+function chooseFlight(kind,id){ // BUG: always sets departId
+  STATE.booking.departId=id; save(); go('/bookings/return');
+}
+function seatClick(e){ // BUG: allows selecting busy seat
+  const id=e.currentTarget.getAttribute('data-id'); STATE.booking.seat=id; save(); render();
+}
+function setMeal(id){ // BUG: fails to save
+  /* no-op on purpose */ render();
+}
+function pay(){ // BUG: ignores validation + remember
+  go('/review');
+}
+function saveDetails(){
+  const pax={firstName:$('#detFirst').value.trim(),lastName:$('#detLast').value.trim(),phoneCode:$('#detCode').value,phone:$('#detPhone').value.trim(),email:$('#detEmail').value.trim(),street:$('#detStreet').value.trim(),apt:$('#detApt').value.trim(),state:$('#detState').value.trim(),zip:$('#detZip').value.trim()};
+  STATE.passenger=pax; save(); go('/billing');
+}
+
+function railGoto(step){if(step==='book'){go('/home');return}if(step==='user'){go('/profile');return}go('/bookings/depart');}
+async function globalSearch(){if(!DB)await ensureDB(); go('/bookings/depart');}
+function restart(){const u=STATE.user;STATE=structuredClone(initial);STATE.user=u;save();go('/home');}
+
+/* routes */
+route('/auth', async()=> Auth((await ensureDB()).assets));
+route('/create', async()=> Create((await ensureDB()).assets));
+route('/home', async()=> { const db=await ensureDB(); return Home(db.assets, db.airports); });
+route('/bookings/depart', async()=> { const db=await ensureDB(); return Bookings(db.assets,'depart'); });
+route('/bookings/return', async()=> { const db=await ensureDB(); return Bookings(db.assets,'return'); });
+route('/seats', async()=> Seats((await ensureDB()).assets));
+route('/meals', async()=> Meals((await ensureDB()).assets));
+route('/details', async()=> Details((await ensureDB()).assets));
+route('/billing', async()=> Billing((await ensureDB()).assets));
+route('/review', async()=> Review((await ensureDB()).assets));
+route('/confirm', async()=> Confirm((await ensureDB()).assets));
+route('/profile', async()=> `<main class="container" style="padding:30px 0 34px"><div class="card" style="padding:22px"><h3>Profile</h3><p>Demo page.</p><button class="btn" onclick="logout()">Sign out</button></div></main>`+Footer());
+
+async function render(){const p=location.hash.replace('#','')||'/auth'; const fn=routes[p]||routes['/auth']; $('#app').innerHTML=await fn();}
+render();
+ensureDB().then(()=>{if(STATE.user){if(!location.hash||location.hash==='#/auth')go('/home')}});
+</script>
+</body>
+</html>
